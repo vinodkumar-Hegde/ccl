@@ -1,0 +1,42 @@
+services:
+  ccl_frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ccl_frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - ccl_backend
+    restart: unless-stopped
+
+  ccl_backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: ccl_backend
+    ports:
+      - "8001:8001"
+    env_file:
+      - ./backend/.env
+    volumes:
+      - ./backend/storage:/app/storage
+    depends_on:
+      - ccl_postgres
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+
+  ccl_postgres:
+    image: postgres:16
+    container_name: ccl_postgres
+    environment:
+      POSTGRES_DB: ccl_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ccl_secure_123
+    volumes:
+      - ccl_postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  ccl_postgres_data:

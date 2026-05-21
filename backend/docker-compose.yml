@@ -1,0 +1,49 @@
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ccl_frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: always
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: ccl_backend
+    ports:
+      - "8001:8001"
+    env_file:
+      - ./backend/.env
+    volumes:
+      - ./backend/storage:/app/storage
+    depends_on:
+      - postgres
+      - qdrant
+    restart: always
+
+  postgres:
+    image: postgres:16
+    container_name: ccl_postgres
+    environment:
+      POSTGRES_DB: ccl_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: CHANGE_THIS_STRONG_PASSWORD
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: always
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: ccl_qdrant
+    volumes:
+      - qdrant_data:/qdrant/storage
+    restart: always
+
+volumes:
+  postgres_data:
+  qdrant_data:

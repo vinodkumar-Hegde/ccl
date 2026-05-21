@@ -1,0 +1,17 @@
+fastapi
+uvicorn[standard]
+python-multipart
+sqlalchemy
+psycopg2-binary
+alembic
+python-dotenv
+pydantic
+pymupdf
+pytesseract
+pillow
+qdrant-client
+fastembed
+ollama
+langchain
+langchain-community
+langchain-qdrant
