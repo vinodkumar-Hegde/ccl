@@ -70,3 +70,5 @@ backend/storage/
 node_modules/
 backend/venv/
 dist/
+desktop
+desktop.pub
