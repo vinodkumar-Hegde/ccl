@@ -1,4 +1,3 @@
-import StructuredClinicalSummary from "../components/StructuredClinicalSummary";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
@@ -16,8 +15,9 @@ import {
 
 import api from "../services/api";
 import { getCaseFiles } from "../services/caseService";
+import StructuredClinicalSummary from "../components/StructuredClinicalSummary";
 
-const API_BASE_URL = "http://127.0.0.1:8001";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8001";
 
 const caseSections = [
   { name: "AI Clinical Interpretation", icon: <FaFileMedical /> },
@@ -30,6 +30,23 @@ const caseSections = [
   { name: "Clinical Impression & Conclusion", icon: <FaCheckCircle /> }
 ];
 
+function cleanFileName(name = "") {
+  return name.replace(/\.[^/.]+$/, "");
+}
+
+function getSummary(caseData) {
+  if (!caseData?.ai_summary) return {};
+
+  if (typeof caseData.ai_summary === "string") {
+    try {
+      return JSON.parse(caseData.ai_summary);
+    } catch {
+      return {};
+    }
+  }
+
+  return caseData.ai_summary;
+}
 
 function getFlowIcon(type = "") {
   const map = {
@@ -45,90 +62,16 @@ function getFlowIcon(type = "") {
   return map[type] || "📌";
 }
 
-function cleanFileName(name = "") {
-  return name.replace(/\.[^/.]+$/, "");
-}
-
-
-function formatClinicalText(text = "") {
-  return text
-    .split(/\n|\.\s+/)
-    .filter(Boolean)
-    .map((item, index) => (
-      <li key={index}>{item.trim()}</li>
-    ));
-}
-
-
-function splitClinicalText(text = "") {
-  return String(text || "Not mentioned")
-    .replace(/\s-\s/g, "\n")
-    .replace(/-\s+/g, "\n")
-    .replace(/\.\s+/g, ".\n")
-    .split(/\n+/)
-    .map((x) => x.trim())
-    .filter(Boolean);
-}
-
-function highlightKeywords(text = "", keywords = []) {
-  if (!keywords || !keywords.length) return text;
-
-  let parts = [text];
-
-  keywords
-    .map((k) => String(k).replace("-", "").trim())
-    .filter((k) => k.length > 3)
-    .slice(0, 12)
-    .forEach((keyword) => {
-      parts = parts.flatMap((part) => {
-        if (typeof part !== "string") return [part];
-
-        const regex = new RegExp(`(${keyword})`, "gi");
-        return part.split(regex).map((piece, index) =>
-          regex.test(piece) ? (
-            <mark key={`${keyword}-${index}`} className="clinicalKeyword">
-              {piece}
-            </mark>
-          ) : (
-            piece
-          )
-        );
-      });
-    });
-
-  return parts;
-}
-
-function SmartClinicalCard({ title, text, keywords }) {
-  const points = splitClinicalText(text);
-
+function SimpleClinicalCard({ title, text }) {
   return (
     <article className="smartClinicalCard">
       <h3>{title}</h3>
-
-      {points.length <= 2 ? (
-        <div className="clinicalParagraphBlock">
-          {points.map((point, index) => (
-            <p key={index}>
-              {highlightKeywords(point, keywords)}
-            </p>
-          ))}
-        </div>
-      ) : (
-        <ul className="smartClinicalList">
-          {points.map((point, index) => (
-            <li key={index}>
-              {highlightKeywords(point, keywords)}
-            </li>
-          ))}
-        </ul>
-      )}
+      <p>{text || "Not clearly mentioned."}</p>
     </article>
   );
 }
 
-export default function CasePage
-({ navigateHome }) {
+export default function CasePage({ navigateHome }) {
   const { caseId } = useParams();
 
   const [activeSection, setActiveSection] = useState("AI Clinical Interpretation");
@@ -142,7 +85,7 @@ export default function CasePage
       const filesResponse = await getCaseFiles(caseId);
 
       setCaseData(caseResponse.data);
-      setCaseFiles(filesResponse);
+      setCaseFiles(Array.isArray(filesResponse) ? filesResponse : []);
     } catch (error) {
       console.error(error);
       alert("Failed to load case");
@@ -155,37 +98,15 @@ export default function CasePage
     loadCase();
   }, [caseId]);
 
-  if (loading) {
-    return <p>Loading case...</p>;
-  }
+  if (loading) return <p>Loading case...</p>;
+  if (!caseData) return <p>Case not found.</p>;
 
-  if (!caseData) {
-    return <p>Case not found.</p>;
-  }
+  const summary = getSummary(caseData);
+  const clinicalNotes = summary.clinical_notes || [];
 
-  const summary =
-  typeof caseData.ai_summary === "string"
-    ? JSON.parse(caseData.ai_summary)
-    : caseData.ai_summary || {};
-
-const clinicalNotes = summary.clinical_notes || [];
-
-console.log("CASE ID:", caseId);
-console.log("CASE DATA:", caseData);
-console.log("SUMMARY:", summary);
-console.log("CLINICAL NOTES:", clinicalNotes);
-
-  const imageFiles = caseFiles.filter(
-    (file) => file.file_type === "image"
-  );
-
-  const labFiles = caseFiles.filter(
-    (file) => file.file_type === "lab_report"
-  );
-
-  const videoFiles = caseFiles.filter(
-    (file) => file.file_type === "video"
-  );
+  const imageFiles = caseFiles.filter((file) => file.file_type === "image");
+  const labFiles = caseFiles.filter((file) => file.file_type === "lab_report");
+  const videoFiles = caseFiles.filter((file) => file.file_type === "video");
 
   return (
     <section className="casePage">
@@ -206,16 +127,10 @@ console.log("CLINICAL NOTES:", clinicalNotes);
           {caseSections.map((section) => (
             <button
               key={section.name}
-              className={
-                activeSection === section.name
-                  ? "sectionBtn active"
-                  : "sectionBtn"
-              }
+              className={activeSection === section.name ? "sectionBtn active" : "sectionBtn"}
               onClick={() => setActiveSection(section.name)}
             >
-              <span className="iconWrap">
-                {section.icon}
-              </span>
+              <span className="iconWrap">{section.icon}</span>
               {section.name}
             </button>
           ))}
@@ -223,9 +138,6 @@ console.log("CLINICAL NOTES:", clinicalNotes);
 
         <section className="caseSummaryPanel">
           <h2>{activeSection}</h2>
-
-<StructuredClinicalSummary summary={summary} />
-
 
           {activeSection === "AI Clinical Interpretation" && (
             <StructuredClinicalSummary summary={summary} />
@@ -249,7 +161,6 @@ console.log("CLINICAL NOTES:", clinicalNotes);
                             <th>Interpretation</th>
                           </tr>
                         </thead>
-
                         <tbody>
                           {file.ai_analysis.tests.map((test, index) => (
                             <tr key={index}>
@@ -263,18 +174,14 @@ console.log("CLINICAL NOTES:", clinicalNotes);
                         </tbody>
                       </table>
                     ) : (
-                      <>
-                        <p>No structured lab analysis available.</p>
-
-                        <a
-                          className="fileLink"
-                          href={`${API_BASE_URL}/storage/${file.filename}`}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          Open uploaded lab file
-                        </a>
-                      </>
+                      <a
+                        className="fileLink"
+                        href={`${API_BASE_URL}/storage/${file.filename}`}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        Open uploaded lab file
+                      </a>
                     )}
                   </div>
                 ))}
@@ -300,8 +207,7 @@ console.log("CLINICAL NOTES:", clinicalNotes);
                       src={`${API_BASE_URL}/storage/${file.filename}`}
                       alt={file.original_name || "Case image"}
                     />
-
-                    <p>{file.original_name || "Case Image"}</p>
+                    <p>{cleanFileName(file.original_name) || "Case Image"}</p>
                   </a>
                 ))}
               </div>
@@ -339,7 +245,6 @@ console.log("CLINICAL NOTES:", clinicalNotes);
                       <th>Vitals</th>
                     </tr>
                   </thead>
-
                   <tbody>
                     {clinicalNotes.map((note, index) => (
                       <tr key={index}>
@@ -363,17 +268,10 @@ console.log("CLINICAL NOTES:", clinicalNotes);
                 {summary.flowchart.map((item, index) => (
                   <div key={index} className="graphFlowItem">
                     <div className="graphFlowNode">
-                      <div className="graphFlowIcon">
-                        {getFlowIcon(item.type)}
-                      </div>
-
+                      <div className="graphFlowIcon">{getFlowIcon(item.type)}</div>
                       <h3>{item.step || `Step ${index + 1}`}</h3>
-
                       <p>{item.description || "No description available."}</p>
-
-                      <span className="flowType">
-                        {item.type || "clinical step"}
-                      </span>
+                      <span className="flowType">{item.type || "clinical step"}</span>
                     </div>
 
                     {index < summary.flowchart.length - 1 && (
@@ -394,9 +292,7 @@ console.log("CLINICAL NOTES:", clinicalNotes);
             <div className="keywordWrap">
               {summary.keywords?.length ? (
                 summary.keywords.map((item) => (
-                  <span key={item}>
-                    {String(item).replace("-", "").trim()}
-                  </span>
+                  <span key={item}>{String(item).replace("-", "").trim()}</span>
                 ))
               ) : (
                 <p>No keywords available.</p>
@@ -405,7 +301,10 @@ console.log("CLINICAL NOTES:", clinicalNotes);
           )}
 
           {activeSection === "Clinical Impression & Conclusion" && (
-            <p>{summary.conclusion || "Not mentioned"}</p>
+            <SimpleClinicalCard
+              title="Clinical Impression & Conclusion"
+              text={summary.conclusion}
+            />
           )}
         </section>
       </div>
