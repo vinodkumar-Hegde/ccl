@@ -217,9 +217,7 @@ export default function DashboardSection({
                 <td>
                   <button
                     className="modernEditBtn"
-                    disabled={
-                      item.processing_status !== "completed"
-                    }
+                    
                     onClick={() => {
                       setSelectedCaseId(item.id);
                       setActiveTab("edit");
