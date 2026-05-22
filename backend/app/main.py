@@ -15,6 +15,8 @@ from app.api.full_process import router as full_process_router
 from app.api.case_files import router as case_files_router
 from app.api.rag import router as rag_router
 from app.api.case_ai_edit import router as case_ai_edit_router
+from app.api.ai_test import router as ai_test_router
+from app.api.ocr_debug import router as ocr_debug_router
 from app.api.flowchart_ai import router as flowchart_ai_router
 
 from app.models.case_model import Case
@@ -65,4 +67,6 @@ app.include_router(full_process_router)
 app.include_router(case_files_router)
 app.include_router(rag_router)
 app.include_router(case_ai_edit_router)
+app.include_router(ai_test_router)
+app.include_router(ocr_debug_router)
 app.include_router(flowchart_ai_router)

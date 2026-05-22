@@ -2684,3 +2684,223 @@ video {
   display: none !important;
 }
 
+
+/* ===== DOCTUTORIALS BRAND THEME ===== */
+
+:root {
+  --dt-blue: #1677ff;
+  --dt-blue-dark: #0057d9;
+  --dt-sky: #eaf6ff;
+  --dt-white: #ffffff;
+  --dt-text: #0f172a;
+  --dt-muted: #64748b;
+  --dt-border: #dbeafe;
+}
+
+/* Global */
+body {
+  background: linear-gradient(135deg, #f6fbff, #eaf6ff) !important;
+  color: var(--dt-text) !important;
+}
+
+/* Sidebar */
+.mainSidebar,
+.adminSidebar {
+  background: linear-gradient(180deg, #ffffff, #eaf6ff) !important;
+  border-right: 1px solid var(--dt-border) !important;
+}
+
+.mainBrand h1,
+.adminBrand h2,
+.mainSidebar h1,
+.adminSidebar h2 {
+  color: var(--dt-blue-dark) !important;
+}
+
+.mainSidebar button,
+.sidebarBtn {
+  background: #ffffff !important;
+  color: var(--dt-text) !important;
+  border: 1px solid var(--dt-border) !important;
+  box-shadow: 0 8px 20px rgba(22, 119, 255, 0.08) !important;
+}
+
+.mainSidebar button:hover,
+.sidebarBtn:hover,
+.sidebarBtn.active {
+  background: linear-gradient(135deg, var(--dt-blue), #38bdf8) !important;
+  color: #ffffff !important;
+}
+
+/* Cards */
+.adminCard,
+.caseSummaryPanel,
+.clinicalInfoCard,
+.summaryCard,
+.flowColumn {
+  background: rgba(255,255,255,0.94) !important;
+  border: 1px solid var(--dt-border) !important;
+  box-shadow: 0 14px 34px rgba(22, 119, 255, 0.08) !important;
+}
+
+/* Headings */
+.libraryHero h1,
+.caseTop h1,
+.adminCard h1,
+.caseSummaryPanel > h2 {
+  color: var(--dt-blue-dark) !important;
+  font-weight: 900 !important;
+}
+
+.libraryHero p,
+.caseTop p,
+.resultMeta {
+  color: var(--dt-muted) !important;
+}
+
+/* Library hierarchy */
+.libraryNode,
+.libraryCaseCard,
+.searchResultItem {
+  background: #ffffff !important;
+  border: 1px solid var(--dt-border) !important;
+  color: var(--dt-text) !important;
+  box-shadow: 0 10px 24px rgba(22,119,255,0.08) !important;
+}
+
+.libraryNode.active {
+  background: linear-gradient(135deg, var(--dt-blue), #38bdf8) !important;
+  color: white !important;
+}
+
+.flowColumn:nth-child(1) .libraryNode::before {
+  content: "📘";
+}
+
+.flowColumn:nth-child(2) .libraryNode::before {
+  content: "🩺";
+}
+
+.flowColumn:nth-child(3) .libraryNode::before {
+  content: "🧠";
+}
+
+.libraryCaseCard::before {
+  content: "📋";
+}
+
+/* Buttons */
+.modernRefreshBtn,
+.modernEditBtn,
+.publishBtn,
+.actionRow button {
+  background: linear-gradient(135deg, var(--dt-blue), #38bdf8) !important;
+  color: #ffffff !important;
+  border: none !important;
+  box-shadow: 0 10px 24px rgba(22,119,255,0.25) !important;
+}
+
+/* Clinical summary */
+.clinicalInfoCard h3 {
+  color: var(--dt-blue-dark) !important;
+}
+
+.clinicalPointList li {
+  color: #1e293b !important;
+}
+
+/* Flowchart */
+.graphFlowNode {
+  border: 1px solid var(--dt-border) !important;
+  background: #ffffff !important;
+}
+
+.graphFlowIcon {
+  background: var(--dt-sky) !important;
+}
+
+.graphFlowLine {
+  background: linear-gradient(180deg, #38bdf8, var(--dt-blue)) !important;
+}
+
+.graphFlowArrowHead {
+  border-top-color: var(--dt-blue) !important;
+}
+
+.flowType {
+  background: var(--dt-sky) !important;
+  color: var(--dt-blue-dark) !important;
+}
+
+/* Mobile top menu */
+.globalMenuBtn,
+.mobileMenuBtn {
+  background: linear-gradient(135deg, var(--dt-blue), #38bdf8) !important;
+  color: white !important;
+}
+
+
+/* ===== STRUCTURED CLINICAL SUMMARY UI ===== */
+
+.structuredClinicalCard {
+  background: #ffffff;
+  border: 1px solid #dbeafe;
+  border-radius: 26px;
+  padding: 28px;
+  box-shadow: 0 16px 38px rgba(22, 119, 255, 0.08);
+  min-height: 320px;
+}
+
+.structuredClinicalCard h3 {
+  color: #0057d9;
+  font-size: 24px;
+  font-weight: 900;
+  margin-bottom: 22px;
+  line-height: 1.3;
+}
+
+.structuredPointWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.structuredPoint {
+  background: #f8fbff;
+  border-left: 5px solid #1677ff;
+  border-radius: 16px;
+  padding: 16px 18px;
+}
+
+.structuredPoint span {
+  display: block;
+  color: #1677ff;
+  font-weight: 900;
+  font-size: 14px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  letter-spacing: 0.3px;
+}
+
+.structuredPoint p {
+  margin: 0;
+  color: #1e293b;
+  font-size: 16px;
+  line-height: 1.75;
+  text-align: left;
+}
+
+@media(max-width: 768px) {
+  .structuredClinicalCard {
+    padding: 20px;
+    min-height: auto;
+  }
+
+  .structuredClinicalCard h3 {
+    font-size: 20px;
+  }
+
+  .structuredPoint p {
+    font-size: 15px;
+  }
+}

@@ -7,25 +7,12 @@ from app.db.database import SessionLocal
 from app.models.case_model import Case
 from app.models.case_file_model import CaseFile
 
-from app.services.ocr_service import (
-    extract_text_with_fallback
-)
-
-from app.services.llm_service import (
-    generate_medical_summary
-)
-
-from app.services.clinical_notes_service import (
-    generate_clinical_notes
-)
-
-from app.services.flowchart_service import (
-    generate_flowchart
-)
-
-from app.services.lab_analysis_service import (
-    analyze_lab_report
-)
+from app.services.ocr_service import extract_text_with_fallback
+from app.services.llm_service import generate_medical_summary
+from app.services.clinical_notes_service import generate_clinical_notes
+from app.services.lab_analysis_service import analyze_lab_report
+from app.services.flowchart_generator_service import generate_flowchart_from_summary
+from app.services.structured_summary_service import structure_clinical_summary
 
 STORAGE_DIR = Path("storage")
 
@@ -36,6 +23,16 @@ def extract_text(filename: str):
     return extract_text_with_fallback(
         str(file_path)
     )
+
+
+def normalize_list_result(result, key):
+    if isinstance(result, list):
+        return result
+
+    if isinstance(result, dict):
+        return result.get(key, [])
+
+    return []
 
 
 def process_case_background(case_id: int):
@@ -79,32 +76,68 @@ def process_case_background(case_id: int):
             extracted_text
         )
 
+        if not isinstance(ai_summary, dict):
+            ai_summary = {}
+
         clinical_notes_result = generate_clinical_notes(
             extracted_text
         )
 
-        if isinstance(clinical_notes_result, list):
-            clinical_notes = clinical_notes_result
-        else:
-            clinical_notes = clinical_notes_result.get(
-                "clinical_notes",
-                []
-            )
-
-        flowchart_result = generate_flowchart(
-            extracted_text
+        clinical_notes = normalize_list_result(
+            clinical_notes_result,
+            "clinical_notes"
         )
 
-        if isinstance(flowchart_result, list):
-            flowchart = flowchart_result
-        else:
-            flowchart = flowchart_result.get(
-                "flowchart",
-                []
-            )
+        summary_for_flowchart = {
+            **ai_summary,
+            "clinical_notes": clinical_notes
+        }
+
+        flowchart = generate_flowchart_from_summary(
+            summary_for_flowchart
+        )
+
+        if not isinstance(flowchart, list) or not flowchart:
+            flowchart = [
+                {
+                    "step": "Patient Presentation",
+                    "description": ai_summary.get(
+                        "history",
+                        "Patient presentation reviewed."
+                    ),
+                    "type": "start"
+                },
+                {
+                    "step": "Clinical Assessment",
+                    "description": ai_summary.get(
+                        "findings",
+                        "Clinical findings reviewed."
+                    ),
+                    "type": "assessment"
+                },
+                {
+                    "step": "Management Plan",
+                    "description": ai_summary.get(
+                        "procedure_plan",
+                        "Management plan reviewed."
+                    ),
+                    "type": "treatment"
+                },
+                {
+                    "step": "Clinical Outcome",
+                    "description": ai_summary.get(
+                        "conclusion",
+                        "Clinical conclusion reviewed."
+                    ),
+                    "type": "outcome"
+                }
+            ]
+
+        structured_summary = structure_clinical_summary(ai_summary)
 
         combined_summary = {
             **ai_summary,
+            "structured_summary": structured_summary,
             "clinical_notes": clinical_notes,
             "flowchart": flowchart
         }
@@ -135,7 +168,7 @@ def process_case_background(case_id: int):
         db.commit()
 
         print(
-            f"Case {case_id} processing completed successfully"
+            f"Case {case_id} processing completed successfully with auto flowchart"
         )
 
     except Exception:
