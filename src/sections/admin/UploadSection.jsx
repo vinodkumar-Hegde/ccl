@@ -17,6 +17,7 @@ export default function UploadSection() {
 
   const [loading, setLoading] = useState(false);
   const [createdCase, setCreatedCase] = useState(null);
+  const [message, setMessage] = useState("");
 
   function updateForm(e) {
     setForm({
@@ -34,6 +35,7 @@ export default function UploadSection() {
     }
 
     setLoading(true);
+    setMessage("");
 
     try {
       const data = new FormData();
@@ -58,12 +60,26 @@ export default function UploadSection() {
 
       const response = await fullProcessCase(data);
 
+      console.log("UPLOAD RESPONSE:", response);
+
       setCreatedCase(response);
 
-      alert("Case uploaded. AI processing started.");
+      setMessage(
+        `Uploaded successfully. Case ID: ${response.case_id}. AI Status: ${response.processing_status}`
+      );
+
+      alert("Case uploaded successfully. AI processing started.");
     } catch (error) {
-      console.error(error);
-      alert("Upload failed");
+      console.error("UPLOAD ERROR:", error);
+
+      const backendMessage =
+        error?.response?.data?.detail ||
+        error?.message ||
+        "Unknown upload error";
+
+      setMessage(`Upload failed: ${backendMessage}`);
+
+      alert(`Upload failed: ${backendMessage}`);
     } finally {
       setLoading(false);
     }
@@ -148,6 +164,12 @@ export default function UploadSection() {
           {loading ? "Uploading..." : "Upload + Start AI Processing"}
         </button>
       </form>
+
+      {message && (
+        <div className="uploadStatusBox">
+          {message}
+        </div>
+      )}
 
       <div className="uploadPreview">
         <p>Case Sheet: {caseSheet ? caseSheet.name : "Not selected"}</p>

@@ -1626,3 +1626,14 @@ body {
   margin-bottom: 28px;
 }
 
+
+.uploadStatusBox {
+  margin-top: 16px;
+  background: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #bbf7d0;
+  padding: 14px;
+  border-radius: 14px;
+  font-weight: 700;
+}
+
