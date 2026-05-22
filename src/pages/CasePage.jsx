@@ -1,3 +1,4 @@
+import StructuredClinicalSummary from "../components/StructuredClinicalSummary";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
@@ -56,6 +57,74 @@ function formatClinicalText(text = "") {
     .map((item, index) => (
       <li key={index}>{item.trim()}</li>
     ));
+}
+
+
+function splitClinicalText(text = "") {
+  return String(text || "Not mentioned")
+    .replace(/\s-\s/g, "\n")
+    .replace(/-\s+/g, "\n")
+    .replace(/\.\s+/g, ".\n")
+    .split(/\n+/)
+    .map((x) => x.trim())
+    .filter(Boolean);
+}
+
+function highlightKeywords(text = "", keywords = []) {
+  if (!keywords || !keywords.length) return text;
+
+  let parts = [text];
+
+  keywords
+    .map((k) => String(k).replace("-", "").trim())
+    .filter((k) => k.length > 3)
+    .slice(0, 12)
+    .forEach((keyword) => {
+      parts = parts.flatMap((part) => {
+        if (typeof part !== "string") return [part];
+
+        const regex = new RegExp(`(${keyword})`, "gi");
+        return part.split(regex).map((piece, index) =>
+          regex.test(piece) ? (
+            <mark key={`${keyword}-${index}`} className="clinicalKeyword">
+              {piece}
+            </mark>
+          ) : (
+            piece
+          )
+        );
+      });
+    });
+
+  return parts;
+}
+
+function SmartClinicalCard({ title, text, keywords }) {
+  const points = splitClinicalText(text);
+
+  return (
+    <article className="smartClinicalCard">
+      <h3>{title}</h3>
+
+      {points.length <= 2 ? (
+        <div className="clinicalParagraphBlock">
+          {points.map((point, index) => (
+            <p key={index}>
+              {highlightKeywords(point, keywords)}
+            </p>
+          ))}
+        </div>
+      ) : (
+        <ul className="smartClinicalList">
+          {points.map((point, index) => (
+            <li key={index}>
+              {highlightKeywords(point, keywords)}
+            </li>
+          ))}
+        </ul>
+      )}
+    </article>
+  );
 }
 
 export default function CasePage
@@ -155,28 +224,11 @@ console.log("CLINICAL NOTES:", clinicalNotes);
         <section className="caseSummaryPanel">
           <h2>{activeSection}</h2>
 
+<StructuredClinicalSummary summary={summary} />
+
+
           {activeSection === "AI Clinical Interpretation" && (
-            <div className="clinicalSummaryGrid">
-              <div className="summaryBlock">
-                <h3>Patient History & Clinical Context</h3>
-                <p>{summary.history || "Not mentioned"}</p>
-              </div>
-
-              <div className="summaryBlock">
-                <h3>Detailed Clinical Findings</h3>
-                <p>{summary.findings || "Not mentioned"}</p>
-              </div>
-
-              <div className="summaryBlock">
-                <h3>Clinical Significance & Interpretation</h3>
-                <p>{summary.significance || "Not mentioned"}</p>
-              </div>
-
-              <div className="summaryBlock">
-                <h3>Planned Procedure</h3>
-                <p>{summary.procedure_plan || "Not mentioned"}</p>
-              </div>
-            </div>
+            <StructuredClinicalSummary summary={summary} />
           )}
 
           {activeSection === "Lab Reports" && (

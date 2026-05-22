@@ -2904,3 +2904,1026 @@ body {
     font-size: 15px;
   }
 }
+
+/* =========================================
+   MODERN CLINICAL LIBRARY
+========================================= */
+
+.dynamicLibraryFlow {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 24px;
+  align-items: start;
+  width: 100%;
+}
+
+/* Library columns */
+
+.flowColumn {
+  background: rgba(255,255,255,0.92);
+  border: 1px solid #dbeafe;
+  border-radius: 28px;
+  padding: 22px;
+  min-height: 72vh;
+  max-height: 72vh;
+  overflow-y: auto;
+
+  box-shadow:
+    0 18px 45px rgba(22,119,255,0.08);
+
+  backdrop-filter: blur(18px);
+}
+
+/* Sticky titles */
+
+.flowColumn h2 {
+  position: sticky;
+  top: -22px;
+  z-index: 50;
+
+  background: rgba(255,255,255,0.96);
+
+  padding: 16px 0;
+
+  margin: 0 0 18px 0;
+
+  color: #0057d9;
+  font-size: 24px;
+  font-weight: 900;
+
+  border-bottom: 1px solid #e2e8f0;
+}
+
+/* Node styles */
+
+.libraryNode,
+.libraryCaseCard {
+  width: 100%;
+  background: #ffffff;
+  border: 1px solid #dbeafe;
+  border-radius: 18px;
+
+  padding: 16px 18px;
+
+  display: flex;
+  align-items: center;
+  gap: 14px;
+
+  margin-bottom: 14px;
+
+  cursor: pointer;
+
+  transition: all 0.22s ease;
+
+  box-shadow:
+    0 10px 24px rgba(15,23,42,0.04);
+}
+
+.libraryNode:hover,
+.libraryCaseCard:hover {
+  transform: translateY(-2px);
+
+  border-color: #60a5fa;
+
+  box-shadow:
+    0 18px 38px rgba(22,119,255,0.12);
+}
+
+/* Active node */
+
+.libraryNode.active {
+  background:
+    linear-gradient(
+      135deg,
+      #1677ff,
+      #38bdf8
+    );
+
+  color: white;
+
+  border-color: transparent;
+}
+
+.libraryNode.active span,
+.libraryNode.active p {
+  color: white !important;
+}
+
+/* Better typography */
+
+.libraryNode strong,
+.libraryCaseCard strong {
+  display: block;
+
+  font-size: 16px;
+  font-weight: 800;
+
+  line-height: 1.4;
+}
+
+.libraryNode span,
+.libraryCaseCard span {
+  font-size: 13px;
+  color: #64748b;
+}
+
+/* Icons */
+
+.libraryNode::before {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.flowColumn:nth-child(1) .libraryNode::before {
+  content: "📘";
+}
+
+.flowColumn:nth-child(2) .libraryNode::before {
+  content: "🩺";
+}
+
+.flowColumn:nth-child(3) .libraryNode::before {
+  content: "🧠";
+}
+
+.libraryCaseCard::before {
+  content: "📋";
+  font-size: 22px;
+}
+
+/* Scrollbar */
+
+.flowColumn::-webkit-scrollbar {
+  width: 8px;
+}
+
+.flowColumn::-webkit-scrollbar-thumb {
+  background: #bfdbfe;
+  border-radius: 999px;
+}
+
+/* Empty states */
+
+.emptyLibraryState {
+  background: #f8fbff;
+  border: 1px dashed #93c5fd;
+
+  padding: 20px;
+
+  border-radius: 18px;
+
+  color: #475569;
+
+  font-weight: 700;
+
+  text-align: center;
+}
+
+/* Responsive */
+
+@media (max-width: 1200px) {
+
+  .dynamicLibraryFlow {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+
+  .dynamicLibraryFlow {
+    grid-template-columns: 1fr;
+  }
+
+  .flowColumn {
+    min-height: auto;
+    max-height: none;
+  }
+
+  .flowColumn h2 {
+    top: 0;
+  }
+}
+
+
+/* ===== CLEAN CENTERED LIBRARY FLOW WITH ARROWS ===== */
+
+.dynamicLibraryFlow {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: flex-start !important;
+  gap: 34px !important;
+  width: 100% !important;
+  min-height: 520px !important;
+}
+
+/* remove big background layout */
+.flowColumn {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  min-height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+  width: 320px !important;
+  padding: 0 !important;
+}
+
+/* centered heading */
+.flowColumn h2 {
+  position: static !important;
+  background: transparent !important;
+  border: none !important;
+  text-align: center !important;
+  color: #0057d9 !important;
+  font-size: 26px !important;
+  font-weight: 900 !important;
+  margin-bottom: 22px !important;
+}
+
+/* clean cards */
+.libraryNode,
+.libraryCaseCard {
+  background: #ffffff !important;
+  border: 1px solid #dbeafe !important;
+  border-radius: 18px !important;
+  box-shadow: 0 12px 30px rgba(22,119,255,0.10) !important;
+  padding: 16px 18px !important;
+  margin-bottom: 14px !important;
+  color: #0f172a !important;
+}
+
+.libraryNode.active {
+  background: linear-gradient(135deg, #1677ff, #38bdf8) !important;
+  color: #ffffff !important;
+}
+
+/* arrows between selected columns */
+.flowColumn:not(:last-child) {
+  position: relative !important;
+}
+
+.flowColumn:not(:last-child)::after {
+  content: "➜";
+  position: absolute;
+  top: 86px;
+  right: -31px;
+  color: #1677ff;
+  font-size: 30px;
+  font-weight: 900;
+  animation: arrowPulse 1.2s infinite;
+}
+
+@keyframes arrowPulse {
+  0% { transform: translateX(0); opacity: 0.55; }
+  50% { transform: translateX(6px); opacity: 1; }
+  100% { transform: translateX(0); opacity: 0.55; }
+}
+
+/* hide arrow if next column is not present automatically handled by DOM */
+
+/* mobile */
+@media (max-width: 900px) {
+  .dynamicLibraryFlow {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 22px !important;
+  }
+
+  .flowColumn {
+    width: 100% !important;
+    max-width: 420px !important;
+  }
+
+  .flowColumn:not(:last-child)::after {
+    content: "↓";
+    top: auto;
+    right: 50%;
+    bottom: -28px;
+    transform: translateX(50%);
+    font-size: 28px;
+  }
+}
+
+
+/* ===== CLEAN CLINICAL FLOW ARROWS ===== */
+
+.dynamicLibraryFlow {
+  gap: 54px !important;
+}
+
+/* precise middle arrows */
+
+.flowColumn {
+  position: relative !important;
+}
+
+.flowColumn:not(:last-child)::after {
+  content: "➜";
+
+  position: absolute;
+
+  top: 50%;
+  right: -42px;
+
+  transform: translateY(-50%);
+
+  color: #1677ff;
+
+  font-size: 34px;
+
+  font-weight: 900;
+
+  animation: none !important;
+}
+
+/* remove gradients completely */
+
+.libraryNode.active {
+  background: #1677ff !important;
+  color: white !important;
+}
+
+/* better medical icons */
+
+.flowColumn:nth-child(1) .libraryNode::before {
+  content: "🧬";
+  font-size: 22px;
+}
+
+.flowColumn:nth-child(2) .libraryNode::before {
+  content: "🩺";
+  font-size: 22px;
+}
+
+.flowColumn:nth-child(3) .libraryNode::before {
+  content: "🧠";
+  font-size: 22px;
+}
+
+.libraryCaseCard::before {
+  content: "🧾";
+  font-size: 22px;
+}
+
+/* cleaner cards */
+
+.libraryNode,
+.libraryCaseCard {
+  background: #ffffff !important;
+
+  border: 1px solid #dbeafe !important;
+
+  box-shadow:
+    0 8px 24px rgba(15,23,42,0.05) !important;
+}
+
+/* mobile arrows */
+
+@media (max-width: 900px) {
+
+  .flowColumn:not(:last-child)::after {
+    content: "↓";
+
+    top: auto;
+    bottom: -34px;
+
+    right: 50%;
+
+    transform: translateX(50%);
+
+    font-size: 30px;
+  }
+}
+
+
+/* ===== PRECISE SECTION CONNECTOR ARROWS ===== */
+
+.dynamicLibraryFlow {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: stretch !important;
+  gap: 70px !important;
+  position: relative !important;
+}
+
+.flowColumn {
+  position: relative !important;
+  width: 320px !important;
+}
+
+/* remove old arrows */
+.flowColumn::after {
+  content: none !important;
+}
+
+/* arrow from Subjects -> Super Specialities */
+.flowColumn:nth-child(1)::after,
+.flowColumn:nth-child(2)::after,
+.flowColumn:nth-child(3)::after {
+  content: "➜" !important;
+  position: absolute !important;
+  top: 50% !important;
+  right: -52px !important;
+  transform: translateY(-50%) !important;
+  color: #1677ff !important;
+  font-size: 34px !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+}
+
+/* only show arrows when next column exists */
+.dynamicLibraryFlow .flowColumn:last-child::after {
+  content: none !important;
+}
+
+/* mobile: arrows point downward between sections */
+@media (max-width: 900px) {
+  .dynamicLibraryFlow {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 58px !important;
+  }
+
+  .flowColumn {
+    width: 100% !important;
+    max-width: 420px !important;
+  }
+
+  .flowColumn:nth-child(1)::after,
+  .flowColumn:nth-child(2)::after,
+  .flowColumn:nth-child(3)::after {
+    content: "↓" !important;
+    top: auto !important;
+    right: 50% !important;
+    bottom: -42px !important;
+    transform: translateX(50%) !important;
+    font-size: 32px !important;
+  }
+
+  .dynamicLibraryFlow .flowColumn:last-child::after {
+    content: none !important;
+  }
+}
+
+/* ===== DYNAMIC CONTEXTUAL FLOW ALIGNMENT ===== */
+
+.dynamicLibraryFlow {
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: flex-start !important;
+
+  gap: 48px !important;
+
+  width: fit-content !important;
+
+  margin: 0 auto !important;
+
+  padding-top: 20px;
+}
+
+/* columns */
+
+.flowColumn {
+  width: 320px !important;
+
+  transition: all 0.25s ease;
+}
+
+/* arrows appear only if column has content */
+
+.flowColumn.has-content {
+  position: relative;
+}
+
+.flowColumn.has-content:not(:last-child)::after {
+  content: "➜";
+
+  position: absolute;
+
+  top: 50%;
+
+  right: -38px;
+
+  transform: translateY(-50%);
+
+  color: #1677ff;
+
+  font-size: 34px;
+
+  font-weight: 900;
+}
+
+/* selected node stronger */
+
+.libraryNode.active {
+  border: 2px solid #1677ff !important;
+
+  transform: scale(1.02);
+}
+
+/* smoother hierarchy feel */
+
+.flowColumn {
+  animation: fadeSlideIn 0.25s ease;
+}
+
+@keyframes fadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* mobile */
+
+@media (max-width: 900px) {
+
+  .dynamicLibraryFlow {
+    flex-direction: column !important;
+
+    align-items: center !important;
+
+    width: 100% !important;
+  }
+
+  .flowColumn {
+    width: 100% !important;
+    max-width: 420px !important;
+  }
+
+  .flowColumn.has-content:not(:last-child)::after {
+    content: "↓";
+
+    top: auto;
+
+    bottom: -36px;
+
+    right: 50%;
+
+    transform: translateX(50%);
+  }
+}
+
+
+/* ===== CLEAN LIBRARY FLOW FINAL ALIGNMENT ===== */
+
+/* keep columns aligned from same top */
+.dynamicLibraryFlow {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr 1fr 1fr !important;
+  gap: 42px !important;
+  align-items: start !important;
+  width: 100% !important;
+  margin: 0 auto !important;
+}
+
+/* remove all old floating arrows */
+.flowColumn::after,
+.flowColumn.has-content::after,
+.flowColumn:not(:last-child)::after,
+.flowColumn:nth-child(1)::after,
+.flowColumn:nth-child(2)::after,
+.flowColumn:nth-child(3)::after {
+  content: none !important;
+  display: none !important;
+}
+
+/* clean columns */
+.flowColumn {
+  width: 100% !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* equal card size */
+.libraryNode,
+.libraryCaseCard {
+  min-height: 78px !important;
+  height: auto !important;
+  position: relative !important;
+}
+
+/* selected item points to next column */
+.libraryNode.active::after {
+  content: "➜";
+  position: absolute;
+  right: -36px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #1677ff;
+  font-size: 34px;
+  font-weight: 900;
+  z-index: 20;
+}
+
+/* no gradient */
+.libraryNode.active {
+  background: #1677ff !important;
+  color: white !important;
+}
+
+/* subject icon */
+.flowColumn:nth-child(1) .libraryNode::before {
+  content: "🧪" !important;
+}
+
+/* prevent icon overwrite on active */
+.flowColumn:nth-child(1) .libraryNode.active::before {
+  content: "🧪" !important;
+}
+
+.flowColumn:nth-child(2) .libraryNode::before {
+  content: "🩺" !important;
+}
+
+.flowColumn:nth-child(2) .libraryNode.active::before {
+  content: "🩺" !important;
+}
+
+.flowColumn:nth-child(3) .libraryNode::before {
+  content: "🧠" !important;
+}
+
+.flowColumn:nth-child(3) .libraryNode.active::before {
+  content: "🧠" !important;
+}
+
+/* remove arrow from disease only when no cases column issue handled by last active on cases */
+.flowColumn:nth-child(4) .libraryCaseCard::after {
+  content: none !important;
+}
+
+/* mobile */
+@media (max-width: 900px) {
+  .dynamicLibraryFlow {
+    grid-template-columns: 1fr !important;
+    gap: 38px !important;
+  }
+
+  .libraryNode.active::after {
+    content: "↓";
+    right: 50%;
+    top: auto;
+    bottom: -36px;
+    transform: translateX(50%);
+    font-size: 30px;
+  }
+}
+
+/* ===== SELECTED PATH ALIGNMENT ===== */
+
+.dynamicLibraryFlow {
+  align-items: center !important;
+}
+
+/* center selected active cards */
+
+.libraryNode.active,
+.libraryCaseCard {
+  position: relative;
+  z-index: 5;
+}
+
+/* vertical alignment consistency */
+
+.flowColumn {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  gap: 18px !important;
+}
+
+/* headings fixed */
+
+.flowColumn h2 {
+  margin-bottom: 26px !important;
+  text-align: center !important;
+}
+
+/* cleaner card spacing */
+
+.libraryNode,
+.libraryCaseCard {
+  margin-bottom: 0 !important;
+}
+
+/* selected card emphasis */
+
+.libraryNode.active {
+  transform: scale(1.02);
+  border: 2px solid #1677ff !important;
+}
+
+/* arrow exact middle */
+
+.libraryNode.active::after {
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+}
+
+/* case card alignment */
+
+.libraryCaseCard {
+  min-height: 96px !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+/* mobile */
+
+@media (max-width: 900px) {
+
+  .dynamicLibraryFlow {
+    align-items: stretch !important;
+  }
+
+  .flowColumn {
+    justify-content: flex-start !important;
+  }
+}
+
+
+/* ===== FINAL CLINICAL FLOW POLISH ===== */
+
+/* tighter heading alignment */
+
+.flowColumn h2 {
+  margin-bottom: 18px !important;
+  font-size: 22px !important;
+}
+
+/* all columns vertically centered */
+
+.dynamicLibraryFlow {
+  align-items: center !important;
+}
+
+/* selected path row alignment */
+
+.flowColumn {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+}
+
+/* subject column spacing fix */
+
+.flowColumn:nth-child(1) {
+  margin-top: 46px !important;
+}
+
+/* visually de-emphasize non-selected cards */
+
+.libraryNode:not(.active) {
+  opacity: 0.88;
+  transform: scale(0.97);
+}
+
+/* selected cards stronger */
+
+.libraryNode.active {
+  transform: scale(1.03);
+  box-shadow:
+    0 14px 36px rgba(22,119,255,0.18) !important;
+}
+
+/* cleaner case card */
+
+.libraryCaseCard {
+  border: 1px solid #dbeafe !important;
+
+  box-shadow:
+    0 10px 24px rgba(15,23,42,0.06) !important;
+}
+
+/* responsive */
+
+@media (max-width: 900px) {
+
+  .flowColumn:nth-child(1) {
+    margin-top: 0 !important;
+  }
+
+  .libraryNode:not(.active) {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+
+/* ===== FINAL LIBRARY ALIGNMENT FIX ===== */
+
+.dynamicLibraryFlow {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(220px, 1fr)) !important;
+  gap: 42px !important;
+  align-items: start !important;
+  width: 100% !important;
+  margin-top: 70px !important;
+}
+
+.flowColumn {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-start !important;
+  width: 100% !important;
+  margin-top: 0 !important;
+}
+
+.flowColumn:nth-child(1) {
+  margin-top: 0 !important;
+}
+
+.flowColumn h2 {
+  height: 48px !important;
+  margin: 0 0 24px 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.libraryNode,
+.libraryCaseCard {
+  min-height: 92px !important;
+  margin-bottom: 16px !important;
+}
+
+/* arrow from selected card only */
+.flowColumn::after,
+.flowColumn:not(:last-child)::after {
+  display: none !important;
+  content: none !important;
+}
+
+.libraryNode.active::after {
+  content: "➜" !important;
+  position: absolute !important;
+  right: -34px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  color: #1677ff !important;
+  font-size: 34px !important;
+  font-weight: 900 !important;
+}
+
+/* no arrow from final case */
+.libraryCaseCard::after {
+  content: none !important;
+}
+
+@media (max-width: 900px) {
+  .dynamicLibraryFlow {
+    grid-template-columns: 1fr !important;
+    margin-top: 30px !important;
+    gap: 48px !important;
+  }
+
+  .libraryNode.active::after {
+    content: "↓" !important;
+    right: 50% !important;
+    top: auto !important;
+    bottom: -38px !important;
+    transform: translateX(50%) !important;
+  }
+}
+
+/* ===== THIN CLEAN ARROWS ===== */
+
+.libraryNode.active::after {
+  font-size: 24px !important;
+  font-weight: 600 !important;
+  right: -28px !important;
+  color: #2563eb !important;
+}
+
+@media (max-width: 900px) {
+  .libraryNode.active::after {
+    font-size: 22px !important;
+    bottom: -30px !important;
+  }
+}
+
+
+/* ===== LIBRARY COLUMN BRAND COLOR ===== */
+
+.flowColumn h2 {
+  color: #799edb !important;
+}
+
+/* active cards */
+
+.libraryNode.active {
+  background: #799edb !important;
+  border-color: #799edb !important;
+}
+
+/* arrows */
+
+.libraryNode.active::after {
+  color: #799edb !important;
+}
+
+/* subtle hover */
+
+.libraryNode:hover,
+.libraryCaseCard:hover {
+  border-color: #799edb !important;
+}
+
+/* headings inside cards */
+
+.libraryNode.active strong,
+.libraryNode.active span {
+  color: #ffffff !important;
+}
+
+
+/* ===== SMART CLINICAL SUMMARY READABILITY ===== */
+
+.smartClinicalCard {
+  background: #ffffff;
+  border: 1px solid #dbeafe;
+  border-radius: 26px;
+  padding: 30px;
+  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.06);
+  min-height: 300px;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.smartClinicalCard h3 {
+  color: #0057d9;
+  font-size: 24px;
+  font-weight: 900;
+  margin-bottom: 22px;
+  letter-spacing: -0.3px;
+}
+
+.clinicalParagraphBlock p {
+  font-size: 17px;
+  line-height: 1.9;
+  color: #1e293b;
+  margin-bottom: 14px;
+  text-align: left;
+}
+
+.smartClinicalList {
+  margin: 0;
+  padding-left: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.smartClinicalList li {
+  position: relative;
+  padding-left: 28px;
+  font-size: 16.5px;
+  line-height: 1.8;
+  color: #1e293b;
+  text-align: left;
+}
+
+.smartClinicalList li::before {
+  content: "•";
+  position: absolute;
+  left: 6px;
+  top: 0;
+  color: #799edb;
+  font-size: 24px;
+  font-weight: 900;
+}
+
+.clinicalKeyword {
+  background: #eaf2ff;
+  color: #0057d9;
+  padding: 2px 7px;
+  border-radius: 8px;
+  font-weight: 800;
+}
+
+@media (max-width: 768px) {
+  .smartClinicalCard {
+    padding: 20px;
+    min-height: auto;
+  }
+
+  .smartClinicalCard h3 {
+    font-size: 20px;
+  }
+
+  .smartClinicalList li,
+  .clinicalParagraphBlock p {
+    font-size: 15px;
+    line-height: 1.75;
+  }
+}
+

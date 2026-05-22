@@ -40,7 +40,11 @@ export default function LibraryPage({ navigateToCase }) {
 
   const subjects = [
     ...new Set(cases.map((item) => item.subject).filter(Boolean))
-  ];
+  ].sort((a, b) => {
+    if (a === selectedSubject) return -1;
+    if (b === selectedSubject) return 1;
+    return a.localeCompare(b);
+  });
 
   const specialities = [
     ...new Set(
@@ -49,7 +53,11 @@ export default function LibraryPage({ navigateToCase }) {
         .map((item) => item.speciality)
         .filter(Boolean)
     )
-  ];
+  ].sort((a, b) => {
+    if (a === selectedSpeciality) return -1;
+    if (b === selectedSpeciality) return 1;
+    return a.localeCompare(b);
+  });
 
   const diseases = [
     ...new Set(
@@ -62,7 +70,11 @@ export default function LibraryPage({ navigateToCase }) {
         .map((item) => item.disease)
         .filter(Boolean)
     )
-  ];
+  ].sort((a, b) => {
+    if (a === selectedDisease) return -1;
+    if (b === selectedDisease) return 1;
+    return a.localeCompare(b);
+  });
 
   const finalCases = cases.filter(
     (item) =>
@@ -129,7 +141,15 @@ export default function LibraryPage({ navigateToCase }) {
                   className="searchResultItem"
                   onClick={() => navigateToCase(item.id)}
                 >
-                  <strong>{item.case_title}</strong>
+                  <strong><>
+<div>
+  <strong>{item.case_title}</strong>
+
+  <span>
+    {item.super_speciality || "Clinical Case"}
+  </span>
+</div>
+</></strong>
                   <span>
                     {item.subject} → {item.speciality} → {item.disease}
                   </span>
@@ -153,7 +173,10 @@ export default function LibraryPage({ navigateToCase }) {
 
             {subjects.map((subject) => (
               <button
-                key={subject}
+                key=<>
+<strong>{subject}</strong>
+<span>Medical Subject</span>
+</>
                 className={
                   selectedSubject === subject
                     ? "libraryNode active"
@@ -164,7 +187,10 @@ export default function LibraryPage({ navigateToCase }) {
                   resetBelow("subject");
                 }}
               >
-                {subject}
+                <>
+<strong>{subject}</strong>
+<span>Medical Subject</span>
+</>
               </button>
             ))}
           </div>
@@ -175,7 +201,10 @@ export default function LibraryPage({ navigateToCase }) {
 
               {specialities.map((speciality) => (
                 <button
-                  key={speciality}
+                  key=<>
+<strong>{speciality}</strong>
+<span>Super Speciality</span>
+</>
                   className={
                     selectedSpeciality === speciality
                       ? "libraryNode active"
@@ -186,7 +215,10 @@ export default function LibraryPage({ navigateToCase }) {
                     resetBelow("speciality");
                   }}
                 >
-                  {speciality}
+                  <>
+<strong>{speciality}</strong>
+<span>Super Speciality</span>
+</>
                 </button>
               ))}
             </div>
@@ -198,7 +230,10 @@ export default function LibraryPage({ navigateToCase }) {
 
               {diseases.map((disease) => (
                 <button
-                  key={disease}
+                  key=<>
+<strong>{disease}</strong>
+<span>Disease Category</span>
+</>
                   className={
                     selectedDisease === disease
                       ? "libraryNode active"
@@ -206,7 +241,10 @@ export default function LibraryPage({ navigateToCase }) {
                   }
                   onClick={() => setSelectedDisease(disease)}
                 >
-                  {disease}
+                  <>
+<strong>{disease}</strong>
+<span>Disease Category</span>
+</>
                 </button>
               ))}
             </div>
@@ -222,7 +260,15 @@ export default function LibraryPage({ navigateToCase }) {
                   className="libraryCaseCard"
                   onClick={() => navigateToCase(item.id)}
                 >
-                  <strong>{item.case_title}</strong>
+                  <strong><>
+<div>
+  <strong>{item.case_title}</strong>
+
+  <span>
+    {item.super_speciality || "Clinical Case"}
+  </span>
+</div>
+</></strong>
                   <span>Case #{item.id}</span>
                 </button>
               ))}
