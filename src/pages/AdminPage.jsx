@@ -6,60 +6,60 @@ import EditSection from "../sections/admin/EditSection";
 
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState("upload");
-
   const [selectedCaseId, setSelectedCaseId] = useState(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  function openSection(section) {
+    setActiveTab(section);
+    setMenuOpen(false);
+  }
 
   return (
     <section className="adminLayout">
-      <aside className="adminSidebar">
-       <div className="sidebarLogoWrap">
-  <img
-    src="/logo.png"
-    alt="DocTutorials"
-    className="sidebarLogo"
-  />
+      <button
+        className="mobileMenuBtn"
+        onClick={() => setMenuOpen(!menuOpen)}
+      >
+        ☰ CCL Intelligence
+      </button>
 
-  <h2>CCL Admin</h2>
-</div>
+      <aside className={menuOpen ? "adminSidebar open" : "adminSidebar"}>
+        <div className="adminBrand">
+          <img src="/logo.png" alt="DocTutorials" />
+          <h2>CCL Intelligence</h2>
+        </div>
 
         <button
-          className={
-            activeTab === "upload"
-              ? "sidebarBtn active"
-              : "sidebarBtn"
-          }
-          onClick={() => setActiveTab("upload")}
+          className={activeTab === "upload" ? "sidebarBtn active" : "sidebarBtn"}
+          onClick={() => openSection("upload")}
         >
           Upload Case
         </button>
 
         <button
-          className={
-            activeTab === "dashboard"
-              ? "sidebarBtn active"
-              : "sidebarBtn"
-          }
-          onClick={() => setActiveTab("dashboard")}
+          className={activeTab === "dashboard" ? "sidebarBtn active" : "sidebarBtn"}
+          onClick={() => openSection("dashboard")}
         >
           Manage Uploads
         </button>
 
         <button
-          className={
-            activeTab === "edit"
-              ? "sidebarBtn active"
-              : "sidebarBtn"
-          }
-          onClick={() => setActiveTab("edit")}
+          className={activeTab === "edit" ? "sidebarBtn active" : "sidebarBtn"}
+          onClick={() => openSection("edit")}
         >
           Edit & Publish
         </button>
       </aside>
 
+      {menuOpen && (
+        <div
+          className="mobileOverlay"
+          onClick={() => setMenuOpen(false)}
+        />
+      )}
+
       <main className="adminMainContent">
-        {activeTab === "upload" && (
-          <UploadSection />
-        )}
+        {activeTab === "upload" && <UploadSection />}
 
         {activeTab === "dashboard" && (
           <DashboardSection
@@ -69,9 +69,7 @@ export default function AdminPage() {
         )}
 
         {activeTab === "edit" && (
-          <EditSection
-            selectedCaseId={selectedCaseId}
-          />
+          <EditSection selectedCaseId={selectedCaseId} />
         )}
       </main>
     </section>

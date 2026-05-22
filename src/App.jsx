@@ -1,39 +1,59 @@
-import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { Routes, Route, useNavigate } from "react-router-dom";
 
-import Sidebar from "./components/Sidebar";
 import LibraryPage from "./pages/LibraryPage";
 import AdminPage from "./pages/AdminPage";
 import CasePage from "./pages/CasePage";
 
-function AppLayout() {
+export default function App() {
   const navigate = useNavigate();
+  const [menuOpen, setMenuOpen] = useState(false);
 
-  const [view, setView] = useState("user");
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  function goTo(path) {
+    navigate(path);
+    setMenuOpen(false);
+  }
 
   function navigateToCase(caseId) {
     navigate(`/case/${caseId}`);
-  }
-
-  function navigateHome() {
-    navigate("/");
+    setMenuOpen(false);
   }
 
   return (
-    <main className="app">
-      <Sidebar
-        sidebarOpen={sidebarOpen}
-        setSidebarOpen={setSidebarOpen}
-        setView={setView}
-        navigate={navigate}
-      />
+    <div className="appShell">
+      <button
+        className="globalMenuBtn"
+        onClick={() => setMenuOpen(true)}
+      >
+        ☰ CCL Intelligence
+      </button>
 
-      <section className="content">
+      <aside className={menuOpen ? "mainSidebar open" : "mainSidebar"}>
+        <h1>CCL Intelligence</h1>
+
+        <button onClick={() => goTo("/")}>
+          User Library
+        </button>
+
+        <button onClick={() => goTo("/admin")}>
+          Admin Panel
+        </button>
+      </aside>
+
+      {menuOpen && (
+        <div
+          className="mainOverlay"
+          onClick={() => setMenuOpen(false)}
+        />
+      )}
+
+      <main className="appContent">
         <Routes>
           <Route
             path="/"
-            element={<LibraryPage navigateToCase={navigateToCase} />}
+            element={
+              <LibraryPage navigateToCase={navigateToCase} />
+            }
           />
 
           <Route
@@ -43,23 +63,12 @@ function AppLayout() {
 
           <Route
             path="/case/:caseId"
-            element={<CasePage navigateHome={navigateHome} />}
-          />
-
-          <Route
-            path="*"
-            element={<LibraryPage navigateToCase={navigateToCase} />}
+            element={
+              <CasePage navigateHome={() => goTo("/")} />
+            }
           />
         </Routes>
-      </section>
-    </main>
-  );
-}
-
-export default function App() {
-  return (
-    <BrowserRouter>
-      <AppLayout />
-    </BrowserRouter>
+      </main>
+    </div>
   );
 }

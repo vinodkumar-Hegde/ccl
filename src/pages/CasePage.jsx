@@ -19,20 +19,50 @@ import { getCaseFiles } from "../services/caseService";
 const API_BASE_URL = "http://127.0.0.1:8001";
 
 const caseSections = [
-  { name: "Clinical Summary", icon: <FaFileMedical /> },
+  { name: "AI Clinical Interpretation", icon: <FaFileMedical /> },
   { name: "Lab Reports", icon: <FaHeartbeat /> },
   { name: "Image", icon: <FaHospital /> },
   { name: "Videos", icon: <FaVideo /> },
-  { name: "Clinical Notes", icon: <FaNotesMedical /> },
+  { name: "Patient Clinical Progress Notes", icon: <FaNotesMedical /> },
   { name: "Flow Chart", icon: <FaProjectDiagram /> },
   { name: "Q-Hub", icon: <FaQuestionCircle /> },
-  { name: "Conclusion", icon: <FaCheckCircle /> }
+  { name: "Clinical Impression & Conclusion", icon: <FaCheckCircle /> }
 ];
 
-export default function CasePage({ navigateHome }) {
+
+function getFlowIcon(type = "") {
+  const map = {
+    start: "🧑‍⚕️",
+    assessment: "🩺",
+    investigation: "🧪",
+    decision: "🔀",
+    treatment: "💊",
+    followup: "📅",
+    outcome: "✅"
+  };
+
+  return map[type] || "📌";
+}
+
+function cleanFileName(name = "") {
+  return name.replace(/\.[^/.]+$/, "");
+}
+
+
+function formatClinicalText(text = "") {
+  return text
+    .split(/\n|\.\s+/)
+    .filter(Boolean)
+    .map((item, index) => (
+      <li key={index}>{item.trim()}</li>
+    ));
+}
+
+export default function CasePage
+({ navigateHome }) {
   const { caseId } = useParams();
 
-  const [activeSection, setActiveSection] = useState("Clinical Summary");
+  const [activeSection, setActiveSection] = useState("AI Clinical Interpretation");
   const [caseData, setCaseData] = useState(null);
   const [caseFiles, setCaseFiles] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -125,20 +155,20 @@ console.log("CLINICAL NOTES:", clinicalNotes);
         <section className="caseSummaryPanel">
           <h2>{activeSection}</h2>
 
-          {activeSection === "Clinical Summary" && (
+          {activeSection === "AI Clinical Interpretation" && (
             <div className="clinicalSummaryGrid">
               <div className="summaryBlock">
-                <h3>History</h3>
+                <h3>Patient History & Clinical Context</h3>
                 <p>{summary.history || "Not mentioned"}</p>
               </div>
 
               <div className="summaryBlock">
-                <h3>Findings</h3>
+                <h3>Detailed Clinical Findings</h3>
                 <p>{summary.findings || "Not mentioned"}</p>
               </div>
 
               <div className="summaryBlock">
-                <h3>Significance</h3>
+                <h3>Clinical Significance & Interpretation</h3>
                 <p>{summary.significance || "Not mentioned"}</p>
               </div>
 
@@ -154,7 +184,7 @@ console.log("CLINICAL NOTES:", clinicalNotes);
               <div className="labTableWrap">
                 {labFiles.map((file) => (
                   <div key={file.id} className="labReportCard">
-                    <h3>{file.original_name || "Lab Report"}</h3>
+                    <h3>{cleanFileName(file.original_name) || "Lab Report"}</h3>
 
                     {file.ai_analysis?.tests?.length ? (
                       <table className="notesTable">
@@ -245,7 +275,7 @@ console.log("CLINICAL NOTES:", clinicalNotes);
             )
           )}
 
-          {activeSection === "Clinical Notes" && (
+          {activeSection === "Patient Clinical Progress Notes" && (
             clinicalNotes.length > 0 ? (
               <div className="notesTableWrap">
                 <table className="notesTable">
@@ -277,22 +307,34 @@ console.log("CLINICAL NOTES:", clinicalNotes);
 
           {activeSection === "Flow Chart" && (
             summary.flowchart?.length ? (
-              <div className="dynamicFlowChart">
+              <div className="graphFlowWrap">
                 {summary.flowchart.map((item, index) => (
-                  <div key={index} className="flowStepCard">
-                    <div className="flowStepNumber">
-                      {index + 1}
+                  <div key={index} className="graphFlowItem">
+                    <div className="graphFlowNode">
+                      <div className="graphFlowIcon">
+                        {getFlowIcon(item.type)}
+                      </div>
+
+                      <h3>{item.step || `Step ${index + 1}`}</h3>
+
+                      <p>{item.description || "No description available."}</p>
+
+                      <span className="flowType">
+                        {item.type || "clinical step"}
+                      </span>
                     </div>
 
-                    <div>
-                      <h3>{item.step}</h3>
-                      <p>{item.description}</p>
-                    </div>
+                    {index < summary.flowchart.length - 1 && (
+                      <div className="graphFlowConnector">
+                        <div className="graphFlowLine" />
+                        <div className="graphFlowArrowHead" />
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
             ) : (
-              <p>No flowchart generated.</p>
+              <p>No graphical flowchart generated yet.</p>
             )
           )}
 
@@ -310,7 +352,7 @@ console.log("CLINICAL NOTES:", clinicalNotes);
             </div>
           )}
 
-          {activeSection === "Conclusion" && (
+          {activeSection === "Clinical Impression & Conclusion" && (
             <p>{summary.conclusion || "Not mentioned"}</p>
           )}
         </section>

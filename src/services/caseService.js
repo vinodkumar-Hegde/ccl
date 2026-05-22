@@ -70,3 +70,12 @@ export async function updateCaseAI(caseId, payload) {
 
   return response.data;
 }
+
+
+export async function generateFlowchart(caseId) {
+  const response = await api.post(
+    `/flowchart/${caseId}`
+  );
+
+  return response.data;
+}
