@@ -1,0 +1,67 @@
+.appShell {
+  display: grid !important;
+  grid-template-columns: 190px minmax(0, 1fr) !important;
+  min-height: 100vh !important;
+  background: #eef7ff !important;
+}
+
+.appShell.sidebarClosed {
+  grid-template-columns: 0 minmax(0, 1fr) !important;
+}
+
+.mainSidebar {
+  width: 190px !important;
+  min-width: 190px !important;
+  height: 100vh !important;
+  position: sticky !important;
+  top: 0 !important;
+  padding: 62px 14px 18px !important;
+  background: #f8fbff !important;
+  border-right: 1px solid #dbeafe !important;
+}
+
+.appShell.sidebarClosed .mainSidebar {
+  display: none !important;
+}
+
+.appContent {
+  width: 100% !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+}
+
+.casePage {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 18px !important;
+}
+
+.caseLayout {
+  display: grid !important;
+  grid-template-columns: 240px minmax(0, 1fr) !important;
+  gap: 16px !important;
+  align-items: start !important;
+}
+
+.caseSideMenu {
+  width: 240px !important;
+  max-width: 240px !important;
+  position: sticky !important;
+  top: 18px !important;
+  padding: 12px !important;
+}
+
+.caseSummaryPanel {
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 22px !important;
+}
+
+.globalSidebarToggle {
+  left: 10px !important;
+  top: 10px !important;
+  height: 30px !important;
+  padding: 5px 10px !important;
+  font-size: 12px !important;
+}

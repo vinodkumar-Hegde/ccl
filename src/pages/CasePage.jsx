@@ -2,14 +2,14 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
 import {
+  FaArrowLeft,
+  FaCheckCircle,
   FaFileMedical,
   FaHeartbeat,
+  FaHospital,
   FaNotesMedical,
   FaProjectDiagram,
   FaQuestionCircle,
-  FaCheckCircle,
-  FaHospital,
-  FaArrowLeft,
   FaVideo
 } from "react-icons/fa";
 
@@ -87,7 +87,7 @@ export default function CasePage({ navigateHome }) {
       setCaseData(caseResponse.data);
       setCaseFiles(Array.isArray(filesResponse) ? filesResponse : []);
     } catch (error) {
-      console.error(error);
+      console.error("Failed to load case", error);
       alert("Failed to load case");
     } finally {
       setLoading(false);
@@ -98,19 +98,19 @@ export default function CasePage({ navigateHome }) {
     loadCase();
   }, [caseId]);
 
-  if (loading) return <p>Loading case...</p>;
-  if (!caseData) return <p>Case not found.</p>;
+  if (loading) return <p className="pageState">Loading case...</p>;
+  if (!caseData) return <p className="pageState">Case not found.</p>;
 
   const summary = getSummary(caseData);
-  const clinicalNotes = summary.clinical_notes || [];
+  const clinicalNotes = Array.isArray(summary.clinical_notes) ? summary.clinical_notes : [];
 
   const imageFiles = caseFiles.filter((file) => file.file_type === "image");
   const labFiles = caseFiles.filter((file) => file.file_type === "lab_report");
   const videoFiles = caseFiles.filter((file) => file.file_type === "video");
 
   return (
-    <section className="casePage">
-      <div className="caseTop">
+    <div className="casePage">
+      <header className="caseTop">
         <button className="backBtn" onClick={navigateHome}>
           <FaArrowLeft />
           Back to Cases
@@ -120,23 +120,24 @@ export default function CasePage({ navigateHome }) {
           <p>{caseData.status} Clinical Case</p>
           <h1>{caseData.case_title}</h1>
         </div>
-      </div>
+      </header>
 
-      <div className="caseLayout">
-        <aside className="caseSideMenu">
+      <section className="caseLayout">
+        <nav className="caseSideMenu" aria-label="Case sections">
           {caseSections.map((section) => (
             <button
+              type="button"
               key={section.name}
               className={activeSection === section.name ? "sectionBtn active" : "sectionBtn"}
               onClick={() => setActiveSection(section.name)}
             >
               <span className="iconWrap">{section.icon}</span>
-              {section.name}
+              <span>{section.name}</span>
             </button>
           ))}
-        </aside>
+        </nav>
 
-        <section className="caseSummaryPanel">
+        <main className="caseSummaryPanel">
           <h2>{activeSection}</h2>
 
           {activeSection === "AI Clinical Interpretation" && (
@@ -161,6 +162,7 @@ export default function CasePage({ navigateHome }) {
                             <th>Interpretation</th>
                           </tr>
                         </thead>
+
                         <tbody>
                           {file.ai_analysis.tests.map((test, index) => (
                             <tr key={index}>
@@ -207,6 +209,7 @@ export default function CasePage({ navigateHome }) {
                       src={`${API_BASE_URL}/storage/${file.filename}`}
                       alt={file.original_name || "Case image"}
                     />
+
                     <p>{cleanFileName(file.original_name) || "Case Image"}</p>
                   </a>
                 ))}
@@ -245,6 +248,7 @@ export default function CasePage({ navigateHome }) {
                       <th>Vitals</th>
                     </tr>
                   </thead>
+
                   <tbody>
                     {clinicalNotes.map((note, index) => (
                       <tr key={index}>
@@ -289,13 +293,16 @@ export default function CasePage({ navigateHome }) {
           )}
 
           {activeSection === "Q-Hub" && (
-            <div className="keywordWrap">
-              {summary.keywords?.length ? (
-                summary.keywords.map((item) => (
-                  <span key={item}>{String(item).replace("-", "").trim()}</span>
+            <div className="qhubGrid">
+              {summary.qhub_questions?.length ? (
+                summary.qhub_questions.map((item, index) => (
+                  <div className="qhubCard" key={index}>
+                    <div className="qhubType">{item.type || "Clinical"}</div>
+                    <div className="qhubQuestion">{item.question}</div>
+                  </div>
                 ))
               ) : (
-                <p>No keywords available.</p>
+                <p>No AI-generated questions available.</p>
               )}
             </div>
           )}
@@ -306,8 +313,8 @@ export default function CasePage({ navigateHome }) {
               text={summary.conclusion}
             />
           )}
-        </section>
-      </div>
-    </section>
+        </main>
+      </section>
+    </div>
   );
 }

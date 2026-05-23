@@ -1,0 +1,200 @@
+html, body, #root {
+  margin: 0;
+  width: 100%;
+  min-height: 100%;
+  background: #eef7ff;
+  overflow-x: hidden;
+}
+
+.appRoot {
+  min-height: 100vh;
+  background: #eef7ff;
+}
+
+.mainWorkspace {
+  width: 100%;
+  min-height: 100vh;
+  padding: 28px;
+}
+
+/* Overlay sidebar */
+.globalSidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 230px;
+  height: 100vh;
+  z-index: 8000;
+  background: #f8fbff;
+  border-right: 1px solid #dbeafe;
+  padding: 76px 20px 24px;
+  box-shadow: 16px 0 40px rgba(15,23,42,0.12);
+}
+
+.appRoot.sidebarClosed .globalSidebar {
+  display: none;
+}
+
+.globalSidebar h1 {
+  color: #0057d9;
+  font-size: 30px;
+  line-height: 1.15;
+  margin: 0 0 30px;
+  font-weight: 900;
+}
+
+.globalSidebar button {
+  width: 100%;
+  padding: 15px 18px;
+  margin-bottom: 14px;
+  border-radius: 15px;
+  border: 1px solid #dbeafe;
+  background: #ffffff;
+  color: #0f172a;
+  font-weight: 800;
+  text-align: left;
+}
+
+.sidebarToggle {
+  position: fixed;
+  top: 14px;
+  left: 14px;
+  z-index: 9000;
+  border: none;
+  border-radius: 10px;
+  background: #799dda;
+  color: white;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+/* Library */
+.libraryPage {
+  width: 100%;
+  padding: 0;
+}
+
+.dynamicLibraryFlow {
+  width: 100%;
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(220px, 1fr)) !important;
+  gap: 28px !important;
+  align-items: start !important;
+  margin-top: 42px !important;
+}
+
+.flowColumn {
+  width: 100% !important;
+  margin: 0 !important;
+}
+
+.flowColumn h2 {
+  text-align: center;
+  margin-bottom: 22px;
+  color: #799dda;
+}
+
+/* Case page */
+.casePage {
+  width: 100%;
+  padding: 0;
+}
+
+.caseLayout {
+  display: grid;
+  grid-template-columns: 270px minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.caseSideMenu {
+  position: sticky;
+  top: 20px;
+  width: 270px;
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+  background: #f8fbff;
+  border: 1px solid #dbeafe;
+  border-radius: 22px;
+  padding: 16px;
+}
+
+.caseSummaryPanel {
+  width: 100%;
+  min-width: 0;
+  background: #ffffff;
+  border: 1px solid #dbeafe;
+  border-radius: 24px;
+  padding: 28px;
+}
+
+/* Mobile */
+@media (max-width: 900px) {
+  .mainWorkspace {
+    padding: 64px 16px 16px;
+  }
+
+  .dynamicLibraryFlow {
+    grid-template-columns: 1fr !important;
+  }
+
+  .caseLayout {
+    display: block;
+  }
+
+  .caseSideMenu {
+    position: relative;
+    width: 100%;
+    max-height: none;
+    margin-bottom: 18px;
+  }
+}
+
+/* FORCE REMOVE LEFT GAP - SIDEBAR OVERLAY ONLY */
+
+.appRoot,
+.appRoot.sidebarOpen,
+.appRoot.sidebarClosed {
+  display: block !important;
+  grid-template-columns: none !important;
+  width: 100% !important;
+}
+
+.mainWorkspace {
+  margin-left: 0 !important;
+  padding-left: 0 !important;
+  width: 100% !important;
+  max-width: none !important;
+}
+
+.globalSidebar {
+  position: fixed !important;
+  left: 0 !important;
+  top: 0 !important;
+  width: 210px !important;
+  height: 100vh !important;
+  z-index: 8000 !important;
+}
+
+.appRoot.sidebarOpen .globalSidebar {
+  display: block !important;
+}
+
+.appRoot.sidebarClosed .globalSidebar {
+  display: none !important;
+}
+
+.libraryPage,
+.casePage,
+.adminPage {
+  margin-left: 0 !important;
+  padding-left: 28px !important;
+  width: 100% !important;
+  max-width: none !important;
+}
+
+.dynamicLibraryFlow {
+  margin-left: 0 !important;
+  padding-left: 0 !important;
+}

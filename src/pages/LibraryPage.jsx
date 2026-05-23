@@ -1,281 +1,273 @@
 import { useEffect, useMemo, useState } from "react";
-import { getPublishedCases } from "../services/caseService";
+import api from "../services/api";
 
 export default function LibraryPage({ navigateToCase }) {
   const [cases, setCases] = useState([]);
   const [search, setSearch] = useState("");
 
-  const [selectedSubject, setSelectedSubject] = useState(null);
-  const [selectedSpeciality, setSelectedSpeciality] = useState(null);
-  const [selectedDisease, setSelectedDisease] = useState(null);
+  const [selectedSubject, setSelectedSubject] = useState("");
+  const [selectedSpeciality, setSelectedSpeciality] = useState("");
+  const [selectedDisease, setSelectedDisease] = useState("");
+
+  async function loadCases() {
+    try {
+      const response = await api.get(`/cases/published?t=${Date.now()}`);
+      setCases(Array.isArray(response.data) ? response.data : []);
+    } catch (error) {
+      console.error("Failed to load published cases", error);
+    }
+  }
 
   useEffect(() => {
     loadCases();
   }, []);
 
-  async function loadCases() {
-    const data = await getPublishedCases();
-    setCases(Array.isArray(data) ? data : []);
-  }
-
-  const searchResults = useMemo(() => {
+  const filteredCases = useMemo(() => {
     const q = search.trim().toLowerCase();
 
-    if (!q) return [];
+    if (!q) return cases;
 
-    return cases.filter((item) => {
-      const text = [
-        item.id,
+    return cases.filter((item) =>
+      [
         item.case_title,
         item.subject,
         item.speciality,
+        item.super_speciality,
         item.disease
       ]
-        .map((v) => String(v || "").toLowerCase())
-        .join(" ");
-
-      return text.includes(q);
-    });
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase()
+        .includes(q)
+    );
   }, [cases, search]);
 
-  const subjects = [
-    ...new Set(cases.map((item) => item.subject).filter(Boolean))
-  ].sort((a, b) => {
-    if (a === selectedSubject) return -1;
-    if (b === selectedSubject) return 1;
-    return a.localeCompare(b);
-  });
+  const subjects = useMemo(() => {
+    return [...new Set(filteredCases.map((item) => item.subject).filter(Boolean))];
+  }, [filteredCases]);
 
-  const specialities = [
-    ...new Set(
-      cases
-        .filter((item) => item.subject === selectedSubject)
-        .map((item) => item.speciality)
-        .filter(Boolean)
-    )
-  ].sort((a, b) => {
-    if (a === selectedSpeciality) return -1;
-    if (b === selectedSpeciality) return 1;
-    return a.localeCompare(b);
-  });
+  const specialities = useMemo(() => {
+    if (!selectedSubject) return [];
 
-  const diseases = [
-    ...new Set(
-      cases
-        .filter(
-          (item) =>
-            item.subject === selectedSubject &&
-            item.speciality === selectedSpeciality
-        )
-        .map((item) => item.disease)
-        .filter(Boolean)
-    )
-  ].sort((a, b) => {
-    if (a === selectedDisease) return -1;
-    if (b === selectedDisease) return 1;
-    return a.localeCompare(b);
-  });
+    return [
+      ...new Set(
+        filteredCases
+          .filter((item) => item.subject === selectedSubject)
+          .map((item) => item.super_speciality || item.speciality)
+          .filter(Boolean)
+      )
+    ];
+  }, [filteredCases, selectedSubject]);
 
-  const finalCases = cases.filter(
-    (item) =>
-      item.subject === selectedSubject &&
-      item.speciality === selectedSpeciality &&
-      item.disease === selectedDisease
-  );
+  const diseases = useMemo(() => {
+    if (!selectedSubject || !selectedSpeciality) return [];
 
-  function resetBelow(level) {
-    if (level === "subject") {
-      setSelectedSpeciality(null);
-      setSelectedDisease(null);
+    return [
+      ...new Set(
+        filteredCases
+          .filter(
+            (item) =>
+              item.subject === selectedSubject &&
+              (item.super_speciality || item.speciality) === selectedSpeciality
+          )
+          .map((item) => item.disease)
+          .filter(Boolean)
+      )
+    ];
+  }, [filteredCases, selectedSubject, selectedSpeciality]);
+
+  const finalCases = useMemo(() => {
+    if (!selectedSubject || !selectedSpeciality || !selectedDisease) return [];
+
+    return filteredCases.filter(
+      (item) =>
+        item.subject === selectedSubject &&
+        (item.super_speciality || item.speciality) === selectedSpeciality &&
+        item.disease === selectedDisease
+    );
+  }, [filteredCases, selectedSubject, selectedSpeciality, selectedDisease]);
+
+  function selectSubject(subject) {
+    if (selectedSubject === subject) {
+      setSelectedSubject("");
+      setSelectedSpeciality("");
+      setSelectedDisease("");
+      return;
     }
 
-    if (level === "speciality") {
-      setSelectedDisease(null);
+    setSelectedSubject(subject);
+    setSelectedSpeciality("");
+    setSelectedDisease("");
+  }
+
+
+  useEffect(() => {
+    requestAnimationFrame(() => {
+      const activeSubject = document.querySelector(".subjectColumn .libraryNode.active");
+      const activeSpeciality = document.querySelectorAll(".flowColumn")[1]?.querySelector(".libraryNode.active");
+      const activeDisease = document.querySelectorAll(".flowColumn")[2]?.querySelector(".libraryNode.active");
+
+      if (activeSubject) {
+        document.documentElement.style.setProperty(
+          "--subject-align",
+          `${activeSubject.offsetTop}px`
+        );
+      }
+
+      if (activeSpeciality) {
+        document.documentElement.style.setProperty(
+          "--speciality-align",
+          `${activeSpeciality.offsetTop}px`
+        );
+      }
+
+      if (activeDisease) {
+        document.documentElement.style.setProperty(
+          "--disease-align",
+          `${activeDisease.offsetTop}px`
+        );
+      }
+    });
+  }, [selectedSubject, selectedSpeciality, selectedDisease]);
+
+
+  function selectSpeciality(speciality) {
+    if (selectedSpeciality === speciality) {
+      setSelectedSpeciality("");
+      setSelectedDisease("");
+      return;
     }
+
+    setSelectedSpeciality(speciality);
+    setSelectedDisease("");
   }
 
   return (
-    <section className="libraryPage">
-      <div className="libraryHero">
-
-        <div className="libraryLogoWrap">
-
-          <img
-            src="/logo.png"
-            alt="DocTutorials"
-            className="libraryLogo"
-          />
-
-          <div>
-            <h1>Clinical Case Library</h1>
-
-            <p>
-              Explore cases by Subject → Super Speciality → Disease → Case.
-            </p>
-          </div>
-
+    <div className="libraryPage">
+      <header className="libraryHero">
+        <div className="libraryLogoBox">
+          <img src="/logo.png" alt="DocTutorials" />
         </div>
 
-        <button
-          className="modernRefreshBtn"
-          onClick={loadCases}
-        >
+        <div>
+          <h1>Clinical Case Library</h1>
+          <p>Explore cases by Subject → Super Speciality → Disease → Case.</p>
+        </div>
+
+        <button className="refreshBtn" onClick={loadCases}>
           Refresh
         </button>
-
-      </div>
+      </header>
 
       <div className="librarySearchBox">
         <input
           value={search}
+          onChange={(event) => setSearch(event.target.value)}
           placeholder="Search case by title, subject, speciality, disease..."
-          onChange={(e) => setSearch(e.target.value)}
         />
-
-        {search && (
-          <div className="searchResultPanel">
-            {searchResults.length ? (
-              searchResults.map((item) => (
-                <button
-                  key={item.id}
-                  className="searchResultItem"
-                  onClick={() => navigateToCase(item.id)}
-                >
-                  <strong><>
-<div>
-  <strong>{item.case_title}</strong>
-
-  <span>
-    {item.super_speciality || "Clinical Case"}
-  </span>
-</div>
-</></strong>
-                  <span>
-                    {item.subject} → {item.speciality} → {item.disease}
-                  </span>
-                </button>
-              ))
-            ) : (
-              <p>No matching cases found.</p>
-            )}
-          </div>
-        )}
       </div>
 
-      {!search && (
-        <div className="dynamicLibraryFlow">
-          <div
-            className={`flowColumn ${
-              selectedSubject ? "shiftLeft" : "centerStage"
-            }`}
-          >
-            <h2>Subjects</h2>
+      <section
+        className={
+          selectedSubject
+            ? "dynamicLibraryFlow activeFlow"
+            : "dynamicLibraryFlow initialSubjectFlow"
+        }
+      >
+        <div className="flowColumn subjectColumn">
+          <h2>Subjects</h2>
 
-            {subjects.map((subject) => (
+          {subjects.length === 0 ? (
+            <div className="emptyLibraryState">No published subjects found.</div>
+          ) : (
+            subjects.map((subject) => (
               <button
-                key=<>
-<strong>{subject}</strong>
-<span>Medical Subject</span>
-</>
-                className={
-                  selectedSubject === subject
-                    ? "libraryNode active"
-                    : "libraryNode"
-                }
-                onClick={() => {
-                  setSelectedSubject(subject);
-                  resetBelow("subject");
-                }}
+                type="button"
+                key={subject}
+                className={selectedSubject === subject ? "libraryNode active" : "libraryNode"}
+                onClick={() => selectSubject(subject)}
               >
-                <>
-<strong>{subject}</strong>
-<span>Medical Subject</span>
-</>
+                <span className="libraryIcon">🧪</span>
+
+                <div>
+                  <strong>{subject}</strong>
+                  <span>Medical Subject</span>
+                </div>
+              </button>
+            ))
+          )}
+        </div>
+
+        {selectedSubject && (
+          <div className="flowColumn">
+            <h2>Super Specialities</h2>
+
+            {specialities.map((speciality) => (
+              <button
+                type="button"
+                key={speciality}
+                className={
+                  selectedSpeciality === speciality ? "libraryNode active" : "libraryNode"
+                }
+                onClick={() => selectSpeciality(speciality)}
+              >
+                <span className="libraryIcon">🩺</span>
+
+                <div>
+                  <strong>{speciality}</strong>
+                  <span>Super Speciality</span>
+                </div>
               </button>
             ))}
           </div>
+        )}
 
-          {selectedSubject && (
-            <div className="flowColumn animateSlide">
-              <h2>Super Specialities</h2>
+        {selectedSpeciality && (
+          <div className="flowColumn">
+            <h2>Diseases</h2>
 
-              {specialities.map((speciality) => (
-                <button
-                  key=<>
-<strong>{speciality}</strong>
-<span>Super Speciality</span>
-</>
-                  className={
-                    selectedSpeciality === speciality
-                      ? "libraryNode active"
-                      : "libraryNode"
-                  }
-                  onClick={() => {
-                    setSelectedSpeciality(speciality);
-                    resetBelow("speciality");
-                  }}
-                >
-                  <>
-<strong>{speciality}</strong>
-<span>Super Speciality</span>
-</>
-                </button>
-              ))}
-            </div>
-          )}
+            {diseases.map((disease) => (
+              <button
+                type="button"
+                key={disease}
+                className={selectedDisease === disease ? "libraryNode active" : "libraryNode"}
+                onClick={() => setSelectedDisease(disease)}
+              >
+                <span className="libraryIcon">🧠</span>
 
-          {selectedSpeciality && (
-            <div className="flowColumn animateSlide">
-              <h2>Diseases</h2>
+                <div>
+                  <strong>{disease}</strong>
+                  <span>Disease Category</span>
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
 
-              {diseases.map((disease) => (
-                <button
-                  key=<>
-<strong>{disease}</strong>
-<span>Disease Category</span>
-</>
-                  className={
-                    selectedDisease === disease
-                      ? "libraryNode active"
-                      : "libraryNode"
-                  }
-                  onClick={() => setSelectedDisease(disease)}
-                >
-                  <>
-<strong>{disease}</strong>
-<span>Disease Category</span>
-</>
-                </button>
-              ))}
-            </div>
-          )}
+        {selectedDisease && (
+          <div className="flowColumn">
+            <h2>Cases</h2>
 
-          {selectedDisease && (
-            <div className="flowColumn animateSlide">
-              <h2>Cases</h2>
+            {finalCases.map((item) => (
+              <button
+                type="button"
+                key={item.id}
+                className="libraryCaseCard"
+                onClick={() => navigateToCase(item.id)}
+              >
+                <span className="libraryIcon">🧾</span>
 
-              {finalCases.map((item) => (
-                <button
-                  key={item.id}
-                  className="libraryCaseCard"
-                  onClick={() => navigateToCase(item.id)}
-                >
-                  <strong><>
-<div>
-  <strong>{item.case_title}</strong>
+                <div>
+                  <strong>{item.case_title}</strong>
+                  <span>Clinical Case</span>
+                </div>
 
-  <span>
-    {item.super_speciality || "Clinical Case"}
-  </span>
-</div>
-</></strong>
-                  <span>Case #{item.id}</span>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-    </section>
+                <small>Case #{item.id}</small>
+              </button>
+            ))}
+          </div>
+        )}
+      </section>
+    </div>
   );
 }
