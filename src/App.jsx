@@ -5,8 +5,6 @@ import LibraryPage from "./pages/LibraryPage";
 import AdminPage from "./pages/AdminPage";
 import CasePage from "./pages/CasePage";
 
-import logo from "./assets/doctutorials-logo.png";
-
 export default function App() {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -39,7 +37,7 @@ export default function App() {
 
           <aside className="globalSidebar">
             <div className="sidebarBrand">
-              <img src={logo} alt="DocTutorials Logo" />
+              <div className="textLogo">DocTutorials</div>
               <h1>CCL Intelligence</h1>
             </div>
 

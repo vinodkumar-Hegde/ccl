@@ -5160,3 +5160,17 @@ body .globalSidebarToggle {
 .sidebarBrand h1 {
   margin: 0 !important;
 }
+
+/* ===== TEXT LOGO FALLBACK ===== */
+
+.textLogo {
+  color: #0057d9;
+  font-size: 24px;
+  font-weight: 900;
+  letter-spacing: -0.4px;
+  margin-bottom: 8px;
+}
+
+.sidebarBrand {
+  margin-bottom: 28px;
+}
