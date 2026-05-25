@@ -8,6 +8,7 @@ from app.models.case_model import Case
 from app.models.case_file_model import CaseFile
 
 from app.services.ocr_service import extract_text_with_fallback
+from app.services.pdf_vision_extraction_service import extract_pdf_with_vision
 from app.services.llm_service import generate_medical_summary
 from app.services.clinical_notes_service import generate_clinical_notes
 from app.services.lab_analysis_service import analyze_lab_report
@@ -19,6 +20,20 @@ STORAGE_DIR = Path("storage")
 
 def extract_text(filename: str):
     file_path = STORAGE_DIR / filename
+
+    if file_path.suffix.lower() == ".pdf":
+        print(f"Using Ollama Vision extraction for PDF: {file_path}")
+
+        vision_result = extract_pdf_with_vision(
+            str(file_path)
+        )
+
+        return vision_result.get(
+            "merged_text",
+            ""
+        )
+
+    print(f"Using OCR fallback extraction for non-PDF file: {file_path}")
 
     return extract_text_with_fallback(
         str(file_path)
@@ -73,7 +88,9 @@ def process_case_background(case_id: int):
             return
 
         ai_summary = generate_medical_summary(
-            extracted_text
+            extracted_text,
+            getattr(case, "department", ""),
+            getattr(case, "super_specialty", "")
         )
 
         if not isinstance(ai_summary, dict):
@@ -102,7 +119,7 @@ def process_case_background(case_id: int):
                 {
                     "step": "Patient Presentation",
                     "description": ai_summary.get(
-                        "history",
+                        "case_overview",
                         "Patient presentation reviewed."
                     ),
                     "type": "start"
@@ -110,7 +127,7 @@ def process_case_background(case_id: int):
                 {
                     "step": "Clinical Assessment",
                     "description": ai_summary.get(
-                        "findings",
+                        "examination_and_findings",
                         "Clinical findings reviewed."
                     ),
                     "type": "assessment"
@@ -118,7 +135,7 @@ def process_case_background(case_id: int):
                 {
                     "step": "Management Plan",
                     "description": ai_summary.get(
-                        "procedure_plan",
+                        "management_plan",
                         "Management plan reviewed."
                     ),
                     "type": "treatment"
@@ -126,7 +143,7 @@ def process_case_background(case_id: int):
                 {
                     "step": "Clinical Outcome",
                     "description": ai_summary.get(
-                        "conclusion",
+                        "diagnosis_or_impression",
                         "Clinical conclusion reviewed."
                     ),
                     "type": "outcome"

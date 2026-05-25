@@ -1,21 +1,14 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
-from dotenv import load_dotenv
 import os
 
-load_dotenv()
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, declarative_base
 
-DATABASE_URL = os.getenv("DATABASE_URL")
-
-connect_args = {}
-
-if DATABASE_URL.startswith("sqlite"):
-    connect_args = {"check_same_thread": False}
-
-engine = create_engine(
-    DATABASE_URL,
-    connect_args=connect_args
+DATABASE_URL = os.getenv(
+    "DATABASE_URL",
+    "postgresql://postgres:ccl_secure_123@ccl_postgres:5432/ccl_db"
 )
+
+engine = create_engine(DATABASE_URL)
 
 SessionLocal = sessionmaker(
     autocommit=False,

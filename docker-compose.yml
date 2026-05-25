@@ -1,20 +1,31 @@
 services:
-  ccl_frontend:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: ccl_frontend
+  ccl_postgres:
+    image: postgres:16
+    container_name: ccl_postgres
+    restart: always
+    environment:
+      POSTGRES_DB: ccl_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ccl_secure_123
+    volumes:
+      - ccl_postgres_data:/var/lib/postgresql/data
+
+  ccl_qdrant:
+    image: qdrant/qdrant:v1.9.1
+    container_name: ccl_qdrant
+    restart: always
     ports:
-      - "8080:80"
-    depends_on:
-      - ccl_backend
-    restart: unless-stopped
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - ccl_qdrant_data:/qdrant/storage
 
   ccl_backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
     container_name: ccl_backend
+    restart: always
     ports:
       - "8001:8001"
     env_file:
@@ -23,20 +34,19 @@ services:
       - ./backend/storage:/app/storage
     depends_on:
       - ccl_postgres
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    restart: unless-stopped
+      - ccl_qdrant
 
-  ccl_postgres:
-    image: postgres:16
-    container_name: ccl_postgres
-    environment:
-      POSTGRES_DB: ccl_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: ccl_secure_123
-    volumes:
-      - ccl_postgres_data:/var/lib/postgresql/data
-    restart: unless-stopped
+  ccl_frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ccl_frontend
+    restart: always
+    ports:
+      - "8080:80"
+    depends_on:
+      - ccl_backend
 
 volumes:
   ccl_postgres_data:
+  ccl_qdrant_data:

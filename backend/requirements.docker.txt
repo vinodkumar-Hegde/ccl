@@ -12,3 +12,8 @@ aiofiles
 pillow
 pytesseract
 opencv-python-headless
+
+PyMuPDF
+pymupdf
+pillow
+fastembed

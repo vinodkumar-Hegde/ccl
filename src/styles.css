@@ -4882,3 +4882,281 @@ body .globalSidebarToggle {
   font-size: 12px !important;
 }
 
+
+/* ===== ADMIN EDIT & PUBLISH FIX ===== */
+
+.editPublishPage {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 32px;
+}
+
+.editPublishPage h1 {
+  color: #0057d9;
+  font-size: 34px;
+  font-weight: 900;
+  margin-bottom: 24px;
+}
+
+.editTopBar {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.editTopBar label,
+.editCard label {
+  color: #0f172a;
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.editTopBar select {
+  height: 52px;
+  border-radius: 14px;
+  border: 1px solid #cbd5e1;
+  padding: 0 16px;
+  font-size: 16px;
+  background: #ffffff;
+}
+
+.editCaseMeta {
+  color: #334155;
+  font-size: 16px;
+  margin-bottom: 24px;
+}
+
+.editGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px;
+}
+
+.editCard {
+  background: #ffffff;
+  border: 1px solid #dbeafe;
+  border-radius: 22px;
+  padding: 22px;
+  box-shadow: 0 8px 24px rgba(15,23,42,0.05);
+}
+
+.editCard textarea {
+  width: 100%;
+  min-height: 180px;
+  margin-top: 14px;
+  padding: 16px;
+  border-radius: 16px;
+  border: 1px solid #cbd5e1;
+  resize: vertical;
+  font-size: 16px;
+  line-height: 1.7;
+  color: #0f172a;
+  background: #ffffff;
+  outline: none;
+}
+
+.editCard textarea:focus {
+  border-color: #799dda;
+  box-shadow: 0 0 0 3px rgba(121,157,218,0.22);
+}
+
+.fullWidthEditCard {
+  grid-column: 1 / -1;
+}
+
+.editActions {
+  display: flex;
+  gap: 16px;
+  margin-top: 28px;
+}
+
+.editActions button {
+  border: none;
+  border-radius: 14px;
+  padding: 15px 22px;
+  background: #e2e8f0;
+  color: #0f172a;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.editActions .publishBtn {
+  background: #0f8f4d;
+  color: #ffffff;
+}
+
+.editActions button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.editMessage {
+  margin-top: 18px;
+  color: #0057d9;
+  font-weight: 900;
+}
+
+@media(max-width: 900px) {
+  .editPublishPage {
+    padding: 18px;
+  }
+
+  .editGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .editActions {
+    flex-direction: column;
+  }
+}
+
+/* ===== FIX USER CASE SUMMARY DISPLAY ===== */
+
+.clinicalSummaryGrid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 24px !important;
+}
+
+.smartClinicalCard {
+  background: #ffffff !important;
+  border: 1px solid #dbeafe !important;
+  border-radius: 22px !important;
+  padding: 24px !important;
+  min-height: 180px !important;
+  box-shadow: 0 8px 24px rgba(15,23,42,0.05) !important;
+}
+
+.smartClinicalCard h3 {
+  margin: 0 0 16px !important;
+  color: #0057d9 !important;
+  font-size: 22px !important;
+  font-weight: 900 !important;
+}
+
+.smartClinicalCard p {
+  margin: 0 !important;
+  color: #1e293b !important;
+  font-size: 16px !important;
+  line-height: 1.75 !important;
+  font-weight: 500 !important;
+  white-space: pre-wrap !important;
+}
+
+.clinicalContentArea {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+}
+
+.clinicalBullet {
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 12px !important;
+}
+
+.clinicalDot {
+  width: 9px !important;
+  height: 9px !important;
+  margin-top: 9px !important;
+  border-radius: 999px !important;
+  background: #799dda !important;
+  flex-shrink: 0 !important;
+}
+
+.fullWidthClinicalCard {
+  grid-column: 1 / -1 !important;
+}
+
+@media(max-width: 900px) {
+  .clinicalSummaryGrid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ===== FIX USER CASE SUMMARY DISPLAY ===== */
+
+.clinicalSummaryGrid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 24px !important;
+}
+
+.smartClinicalCard {
+  background: #ffffff !important;
+  border: 1px solid #dbeafe !important;
+  border-radius: 22px !important;
+  padding: 24px !important;
+  min-height: 180px !important;
+  box-shadow: 0 8px 24px rgba(15,23,42,0.05) !important;
+}
+
+.smartClinicalCard h3 {
+  margin: 0 0 16px !important;
+  color: #0057d9 !important;
+  font-size: 22px !important;
+  font-weight: 900 !important;
+}
+
+.smartClinicalCard p {
+  margin: 0 !important;
+  color: #1e293b !important;
+  font-size: 16px !important;
+  line-height: 1.75 !important;
+  font-weight: 500 !important;
+  white-space: pre-wrap !important;
+}
+
+.clinicalContentArea {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+}
+
+.clinicalBullet {
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 12px !important;
+}
+
+.clinicalDot {
+  width: 9px !important;
+  height: 9px !important;
+  margin-top: 9px !important;
+  border-radius: 999px !important;
+  background: #799dda !important;
+  flex-shrink: 0 !important;
+}
+
+.fullWidthClinicalCard {
+  grid-column: 1 / -1 !important;
+}
+
+@media(max-width: 900px) {
+  .clinicalSummaryGrid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ===== SIDEBAR LOGO FIX ===== */
+
+.sidebarBrand {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 30px;
+}
+
+.sidebarBrand img {
+  width: 150px;
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
+  display: block;
+}
+
+.sidebarBrand h1 {
+  margin: 0 !important;
+}

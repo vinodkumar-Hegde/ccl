@@ -5,6 +5,8 @@ import LibraryPage from "./pages/LibraryPage";
 import AdminPage from "./pages/AdminPage";
 import CasePage from "./pages/CasePage";
 
+import logo from "./assets/doctutorials-logo.png";
+
 export default function App() {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -21,20 +23,25 @@ export default function App() {
 
   return (
     <div className="appRoot">
-      <button className="sidebarToggle" onClick={() => setSidebarOpen(true)}>
+      <button
+        className="sidebarToggle"
+        onClick={() => setSidebarOpen(!sidebarOpen)}
+      >
         ☰
       </button>
 
       {sidebarOpen && (
         <>
-          <div className="sidebarBackdrop" onClick={() => setSidebarOpen(false)} />
+          <div
+            className="sidebarBackdrop"
+            onClick={() => setSidebarOpen(false)}
+          />
 
           <aside className="globalSidebar">
-            <button className="closeSidebar" onClick={() => setSidebarOpen(false)}>
-              ×
-            </button>
-
-            <h1>CCL Intelligence</h1>
+            <div className="sidebarBrand">
+              <img src={logo} alt="DocTutorials Logo" />
+              <h1>CCL Intelligence</h1>
+            </div>
 
             <button onClick={() => goTo("/")}>User Library</button>
             <button onClick={() => goTo("/admin")}>Admin Panel</button>
@@ -44,9 +51,20 @@ export default function App() {
 
       <main className="mainWorkspace">
         <Routes>
-          <Route path="/" element={<LibraryPage navigateToCase={navigateToCase} />} />
-          <Route path="/admin" element={<AdminPage />} />
-          <Route path="/case/:caseId" element={<CasePage navigateHome={() => goTo("/")} />} />
+          <Route
+            path="/"
+            element={<LibraryPage navigateToCase={navigateToCase} />}
+          />
+
+          <Route
+            path="/admin"
+            element={<AdminPage />}
+          />
+
+          <Route
+            path="/case/:caseId"
+            element={<CasePage navigateHome={() => goTo("/")} />}
+          />
         </Routes>
       </main>
     </div>

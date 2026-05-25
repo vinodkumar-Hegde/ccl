@@ -1,15 +1,31 @@
-from fastapi import APIRouter, UploadFile, File, Form, Depends, BackgroundTasks
+from fastapi import (
+    APIRouter,
+    UploadFile,
+    File,
+    Form,
+    Depends,
+    BackgroundTasks
+)
+
 from sqlalchemy.orm import Session
+
 from pathlib import Path
 from uuid import uuid4
 import shutil
 
 from app.db.database import get_db
+
 from app.models.case_model import Case
 from app.models.case_file_model import CaseFile
-from app.services.case_processing_service import process_case_background
 
-router = APIRouter(prefix="/full-process", tags=["Full Case Processing"])
+from app.services.case_processing_service import (
+    process_case_background
+)
+
+router = APIRouter(
+    prefix="/full-process",
+    tags=["Full Case Processing"]
+)
 
 STORAGE_DIR = Path("storage")
 STORAGE_DIR.mkdir(exist_ok=True)
@@ -29,7 +45,12 @@ def save_file(file: UploadFile | None):
     return filename
 
 
-def save_case_file(db, case_id, file, file_type):
+def save_case_file(
+    db,
+    case_id,
+    file,
+    file_type
+):
     stored_filename = save_file(file)
 
     if not stored_filename:
@@ -44,20 +65,25 @@ def save_case_file(db, case_id, file, file_type):
     )
 
     db.add(record)
+
     return record
 
 
 @router.post("/case")
 async def full_process_case(
     background_tasks: BackgroundTasks,
+
     subject: str = Form(...),
     speciality: str = Form(...),
     disease: str = Form(...),
     case_title: str = Form(...),
+
     case_sheet: UploadFile = File(...),
+
     lab_reports: list[UploadFile] | None = File(None),
     images: list[UploadFile] | None = File(None),
     videos: list[UploadFile] | None = File(None),
+
     db: Session = Depends(get_db)
 ):
     new_case = Case(
@@ -73,19 +99,39 @@ async def full_process_case(
     db.commit()
     db.refresh(new_case)
 
-    save_case_file(db, new_case.id, case_sheet, "case_sheet")
+    save_case_file(
+        db=db,
+        case_id=new_case.id,
+        file=case_sheet,
+        file_type="case_sheet"
+    )
 
     if lab_reports:
         for file in lab_reports:
-            save_case_file(db, new_case.id, file, "lab_report")
+            save_case_file(
+                db=db,
+                case_id=new_case.id,
+                file=file,
+                file_type="lab_report"
+            )
 
     if images:
         for file in images:
-            save_case_file(db, new_case.id, file, "image")
+            save_case_file(
+                db=db,
+                case_id=new_case.id,
+                file=file,
+                file_type="image"
+            )
 
     if videos:
         for file in videos:
-            save_case_file(db, new_case.id, file, "video")
+            save_case_file(
+                db=db,
+                case_id=new_case.id,
+                file=file,
+                file_type="video"
+            )
 
     db.commit()
 

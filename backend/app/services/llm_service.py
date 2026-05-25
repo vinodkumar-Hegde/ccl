@@ -1,99 +1,141 @@
+import json
+import os
+import re
+
 import ollama
 
-MODEL_NAME = "mistral"
+from app.services.clinical_template_service import get_clinical_template_context
 
 
-def generate_medical_summary(extracted_text: str):
-    if not extracted_text or len(extracted_text.strip()) < 10:
-        return empty_summary()
+OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://host.docker.internal:11434")
+OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3.1:8b")
+
+
+SUMMARY_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "case_overview": {"type": "string"},
+        "key_clinical_history": {"type": "string"},
+        "examination_and_findings": {"type": "string"},
+        "investigations": {"type": "string"},
+        "diagnosis_or_impression": {"type": "string"},
+        "management_plan": {"type": "string"},
+        "teaching_points": {
+            "type": "array",
+            "items": {"type": "string"}
+        },
+        "extraction_quality": {"type": "string"},
+        "unreadable_sections": {"type": "string"}
+    },
+    "required": [
+        "case_overview",
+        "key_clinical_history",
+        "examination_and_findings",
+        "investigations",
+        "diagnosis_or_impression",
+        "management_plan",
+        "teaching_points",
+        "extraction_quality",
+        "unreadable_sections"
+    ]
+}
+
+
+def _extract_json(text: str):
+    match = re.search(r"\{[\s\S]*\}", text or "")
+    if not match:
+        return None
+
+    try:
+        return json.loads(match.group(0))
+    except Exception:
+        return None
+
+
+def _fallback_summary(text: str):
+    return {
+        "case_overview": "The uploaded case sheet could not be reliably interpreted.",
+        "key_clinical_history": "Not clearly readable in the uploaded case sheet.",
+        "examination_and_findings": "Not clearly readable in the uploaded case sheet.",
+        "investigations": "Not clearly readable in the uploaded case sheet.",
+        "diagnosis_or_impression": "Not clearly readable in the uploaded case sheet.",
+        "management_plan": "Not clearly readable in the uploaded case sheet.",
+        "teaching_points": [
+            "Image/document extraction quality must be improved before reliable academic interpretation."
+        ],
+        "extraction_quality": "Poor",
+        "unreadable_sections": "Large portions of the case sheet were unclear or unreadable."
+    }
+
+
+def generate_medical_summary(
+    extracted_text: str,
+    department: str = "",
+    speciality: str = ""
+):
+    if not extracted_text or len(extracted_text.strip()) < 50:
+        return _fallback_summary(extracted_text)
+
+    clinical_template = get_clinical_template_context(department, speciality)
 
     prompt = f"""
-You are a senior clinical case analyst.
+You are a senior clinician and medical educator.
 
-The input is raw extracted text from a patient case sheet.
-It may be unstructured, incomplete, handwritten OCR text, or without headings.
+You are given LLM vision-extracted content from a clinical case sheet PDF.
 
 Your task:
-Infer and organize the available clinical information into structured sections.
+Create a clinically useful academic case summary.
 
-Return the answer in this exact format:
+Safety rules:
+1. Use only extracted content.
+2. Do not invent facts.
+3. Do not guess unreadable handwriting.
+4. You may infer only common clinical grouping, not missing patient facts.
+5. If unclear, write "Not clearly readable in the uploaded case sheet."
+6. Keep summary useful for MBBS/PG students.
+7. Return only JSON.
 
-History:
-Summarize patient demographics, chief complaints, duration, past history, relevant symptoms, and clinical background. Infer only from available text.
+Clinical template:
+{clinical_template}
 
-Findings:
-Summarize examination findings, vitals, lab abnormalities, imaging findings, diagnosis clues, and important observations.
-
-Significance:
-Explain why this case is clinically important. Mention possible diagnosis, risk factors, severity, red flags, and learning value.
-
-Procedure Plan:
-Mention investigations, treatment plan, procedures, monitoring, medications, referrals, or follow-up suggested from the case. If not available, say "Not clearly mentioned".
-
-Conclusion:
-Give a concise clinical conclusion based on the available information.
-
-Keywords:
-Give 5 to 10 important medical keywords separated by commas.
-
-Rules:
-- Do not hallucinate.
-- Do not invent patient details.
-- If something is not available, write "Not mentioned".
-- Use clinical language.
-- Even if headings are absent, classify the text intelligently.
-
-Raw case text:
-{extracted_text[:5000]}
+Vision-extracted case sheet content:
+{extracted_text[:12000]}
 """
 
-    response = ollama.chat(
-        model=MODEL_NAME,
-        messages=[
-            {"role": "user", "content": prompt}
-        ],
-        options={"temperature": 0.2}
-    )
-
-    raw = response["message"]["content"]
-
-    return {
-        "history": extract_section(raw, "History", "Findings"),
-        "findings": extract_section(raw, "Findings", "Significance"),
-        "significance": extract_section(raw, "Significance", "Procedure Plan"),
-        "procedure_plan": extract_section(raw, "Procedure Plan", "Conclusion"),
-        "conclusion": extract_section(raw, "Conclusion", "Keywords"),
-        "keywords": extract_keywords(raw)
-    }
-
-
-def extract_section(text, start, end):
     try:
-        part = text.split(start + ":")[1]
-        part = part.split(end + ":")[0]
-        return part.strip() or "Not mentioned"
-    except Exception:
-        return "Not mentioned"
+        client = ollama.Client(host=OLLAMA_HOST)
 
+        response = client.chat(
+            model=OLLAMA_MODEL,
+            messages=[
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ],
+            format=SUMMARY_SCHEMA,
+            options={
+                "temperature": 0
+            }
+        )
 
-def extract_keywords(text):
-    try:
-        part = text.split("Keywords:")[1]
-        return [
-            item.strip()
-            for item in part.replace("\n", ",").split(",")
-            if item.strip()
-        ]
-    except Exception:
-        return []
+        parsed = _extract_json(response["message"]["content"])
 
+        if not parsed:
+            return _fallback_summary(extracted_text)
 
-def empty_summary():
-    return {
-        "history": "No readable text found.",
-        "findings": "Not mentioned",
-        "significance": "Not mentioned",
-        "procedure_plan": "Not clearly mentioned",
-        "conclusion": "Not mentioned",
-        "keywords": []
-    }
+        final = _fallback_summary(extracted_text)
+
+        for key in SUMMARY_SCHEMA["required"]:
+            value = parsed.get(key)
+
+            if key == "teaching_points":
+                final[key] = value if isinstance(value, list) else final[key]
+            elif isinstance(value, str) and value.strip():
+                final[key] = value.strip()
+
+        return final
+
+    except Exception as error:
+        print("Summary generation failed:", error)
+        return _fallback_summary(extracted_text)

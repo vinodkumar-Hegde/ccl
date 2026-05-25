@@ -72,3 +72,24 @@ backend/venv/
 dist/
 desktop
 desktop.pub
+
+# Environment files
+.env
+backend/.env
+
+# Dependencies/build
+node_modules/
+dist/
+backend/venv/
+.venv/
+__pycache__/
+*.pyc
+
+# Uploaded files/storage
+backend/storage/
+storage/
+
+# Large AI/model files
+*.gguf
+*.bin
+*.safetensors
