@@ -977,3 +977,179 @@ body,
     line-height: 1.25 !important;
   }
 }
+
+.clinicalBulletList {
+  margin: 0;
+  padding-left: 24px;
+  display: grid;
+  gap: 12px;
+}
+
+.clinicalBulletList li {
+  color: #263b52;
+  font-size: 16px;
+  line-height: 1.7;
+}
+
+.clinicalBulletList li::marker {
+  color: #2563eb;
+}
+
+.fullWidthClinicalCard {
+  grid-column: 1 / -1;
+}
+
+.editCard label {
+  font-weight: 800;
+  color: #182230;
+}
+
+.editCard textarea {
+  width: 100%;
+  min-height: 150px;
+  resize: vertical;
+  border: 1.5px solid #d9e4f2;
+  border-radius: 18px;
+  padding: 18px;
+  font-size: 15px;
+  line-height: 1.6;
+  background: #ffffff;
+  color: #1d2939;
+}
+
+.editCard.fullWidthClinicalCard textarea {
+  min-height: 190px;
+}
+
+.priorityClinicalCard {
+  border: 2px solid #2563eb !important;
+  background: #f8fbff !important;
+}
+
+.priorityClinicalCard label {
+  color: #1d4ed8 !important;
+  font-size: 16px;
+}
+
+.priorityClinicalCard textarea {
+  min-height: 210px !important;
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.reconstructionHeader {
+  margin: 24px 0;
+  padding: 22px;
+  border: 1.5px solid #d9e4f2;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #f8fbff, #eef6ff);
+}
+
+.reconstructionHeader h2 {
+  margin: 0;
+  color: #102a43;
+  font-size: 26px;
+}
+
+.reconstructionHeader p {
+  margin: 8px 0 0;
+  color: #52677a;
+  line-height: 1.6;
+}
+
+.reconstructionGrid {
+  align-items: stretch;
+}
+
+.safetyNoteCard {
+  border: 2px solid #f59e0b !important;
+  background: #fffbeb !important;
+}
+
+.safetyNoteCard label {
+  color: #92400e !important;
+}
+
+.adminLandingBtn {
+  background: #111827 !important;
+  color: #ffffff !important;
+  border: 1px solid #111827 !important;
+}
+
+.adminLandingBtn:hover {
+  background: #2563eb !important;
+  border-color: #2563eb !important;
+}
+
+.sidebarToggle {
+  position: fixed;
+  top: 18px;
+  left: 18px;
+  z-index: 1001;
+  width: 46px;
+  height: 46px;
+  border: none;
+  border-radius: 14px;
+  background: #111827;
+  color: #ffffff;
+  font-size: 22px;
+  cursor: pointer;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.22);
+}
+
+.sidebarBackdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  z-index: 1002;
+}
+
+.globalSidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 290px;
+  height: 100vh;
+  background: #ffffff;
+  z-index: 1003;
+  padding: 28px 20px;
+  box-shadow: 18px 0 50px rgba(15, 23, 42, 0.22);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.sidebarBrand {
+  margin-bottom: 18px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.sidebarBrand .textLogo {
+  font-weight: 900;
+  color: #2563eb;
+  font-size: 20px;
+}
+
+.sidebarBrand h1 {
+  margin: 8px 0 0;
+  font-size: 22px;
+  color: #111827;
+}
+
+.globalSidebar button {
+  width: 100%;
+  border: none;
+  border-radius: 14px;
+  padding: 14px 16px;
+  text-align: left;
+  background: #f3f6fb;
+  color: #111827;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.globalSidebar button:hover {
+  background: #2563eb;
+  color: #ffffff;
+}

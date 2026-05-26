@@ -79,12 +79,23 @@ def generate_medical_summary(
     clinical_template = get_clinical_template_context(department, speciality)
 
     prompt = f"""
-You are a senior clinician and medical educator.
+You are a senior clinician, medical educator, and clinical document analyst.
+
+You must first respect the detected DOCUMENT TYPE in the input.
+Do not force every document into a patient case summary.
+If the document is MCQ/lecture content, extract educational content.
+If the document is lab report, extract lab interpretation.
+If the document is procedure/operation note, extract procedure details.
+If the document is a clinical case sheet, create a clinical case summary.
 
 You are given LLM vision-extracted content from a clinical case sheet PDF.
 
 Your task:
 Create a clinically useful academic case summary.
+
+The input may contain OCR noise from hospital forms, drug charts, nursing charts, headers, footers, and repeated templates.
+Ignore non-clinical boilerplate.
+Focus on diagnosis, history, examination, investigations, treatment, procedure, discharge summary, and follow-up.
 
 Safety rules:
 1. Use only extracted content.

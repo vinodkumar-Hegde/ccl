@@ -36,6 +36,24 @@ const SUMMARY_FIELDS = [
   },
 ];
 
+function normalizeSummary(value) {
+  if (!value) return {};
+
+  if (typeof value === "object") {
+    return value;
+  }
+
+  if (typeof value === "string") {
+    try {
+      return JSON.parse(value);
+    } catch {
+      return {};
+    }
+  }
+
+  return {};
+}
+
 export default function EditSection() {
   const [cases, setCases] = useState([]);
   const [selectedCaseId, setSelectedCaseId] = useState("");
@@ -51,7 +69,7 @@ export default function EditSection() {
 
       setCases(list);
 
-      if (list.length && !selectedCaseId) {
+      if (list.length && !selectedCase) {
         selectCase(list[0]);
       }
     } catch (error) {
@@ -61,17 +79,18 @@ export default function EditSection() {
   }
 
   function selectCase(caseItem) {
+    const ai = normalizeSummary(caseItem.ai_summary);
+
     setSelectedCase(caseItem);
     setSelectedCaseId(String(caseItem.id));
-
-    const ai = caseItem.ai_summary || {};
 
     setSummary({
       case_overview: ai.case_overview || ai.history || "",
       key_clinical_history: ai.key_clinical_history || ai.clinical_history || "",
       examination_and_findings: ai.examination_and_findings || ai.findings || "",
       investigations: ai.investigations || "",
-      diagnosis_or_impression: ai.diagnosis_or_impression || ai.conclusion || "",
+      diagnosis_or_impression:
+        ai.diagnosis_or_impression || ai.clinical_impression || ai.conclusion || "",
       management_plan: ai.management_plan || ai.procedure_plan || "",
       extraction_quality: ai.extraction_quality || "",
       unreadable_sections: ai.unreadable_sections || "",
@@ -90,8 +109,8 @@ export default function EditSection() {
   }
 
   function updateField(key, value) {
-    setSummary((prev) => ({
-      ...prev,
+    setSummary((previous) => ({
+      ...previous,
       [key]: value,
     }));
   }
@@ -105,8 +124,10 @@ export default function EditSection() {
     setSaving(true);
     setMessage("");
 
+    const existingSummary = normalizeSummary(selectedCase.ai_summary);
+
     const updatedSummary = {
-      ...selectedCase.ai_summary,
+      ...existingSummary,
       ...summary,
     };
 
@@ -172,20 +193,10 @@ export default function EditSection() {
             />
           </div>
         ))}
-
-        <div className="editCard fullWidthEditCard">
-          <label>Teaching Points</label>
-
-          <textarea
-            value={teachingPoints}
-            onChange={(event) => setTeachingPoints(event.target.value)}
-            placeholder="Enter one teaching point per line"
-          />
-        </div>
       </div>
 
       <div className="editActions">
-        <button disabled={saving} onClick={() => saveCase(null)}>
+        <button disabled={saving} onClick={() => saveCase("draft")}>
           {saving ? "Saving..." : "Save Draft"}
         </button>
 

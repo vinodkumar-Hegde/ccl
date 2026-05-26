@@ -1,62 +1,127 @@
 from pathlib import Path
-from sqlalchemy.orm import Session
-import traceback
+import fitz
+import pytesseract
+from PIL import Image, ImageEnhance, ImageFilter
 
 from app.db.database import SessionLocal
-
 from app.models.case_model import Case
 from app.models.case_file_model import CaseFile
+from app.services.ollama_service import generate_structured_summary
+from app.services.lab_report_service import analyze_lab_report_text
+from app.services.case_reconstruction_service import reconstruct_teaching_case
 
-from app.services.ocr_service import extract_text_with_fallback
-from app.services.pdf_vision_extraction_service import extract_pdf_with_vision
-from app.services.llm_service import generate_medical_summary
-from app.services.clinical_notes_service import generate_clinical_notes
-from app.services.lab_analysis_service import analyze_lab_report
-from app.services.flowchart_generator_service import generate_flowchart_from_summary
-from app.services.structured_summary_service import structure_clinical_summary
 
 STORAGE_DIR = Path("storage")
 
 
-def extract_text(filename: str):
-    file_path = STORAGE_DIR / filename
+def preprocess_image_for_ocr(image: Image.Image) -> Image.Image:
+    image = image.convert("L")
+    image = ImageEnhance.Contrast(image).enhance(2.0)
+    image = ImageEnhance.Sharpness(image).enhance(1.5)
+    image = image.filter(ImageFilter.SHARPEN)
+    return image
 
-    if file_path.suffix.lower() == ".pdf":
-        print(f"Using Ollama Vision extraction for PDF: {file_path}")
 
-        vision_result = extract_pdf_with_vision(
-            str(file_path)
+def ocr_image(image: Image.Image) -> str:
+    image = preprocess_image_for_ocr(image)
+    config = "--oem 3 --psm 6"
+
+    try:
+        return pytesseract.image_to_string(image, config=config).strip()
+    except Exception as e:
+        return f"OCR error: {str(e)}"
+
+
+def extract_text_from_pdf(file_path: Path) -> str:
+    text_parts = []
+
+    try:
+        doc = fitz.open(file_path)
+
+        for page_number, page in enumerate(doc, start=1):
+            page_text = page.get_text("text") or ""
+
+            if len(page_text.strip()) > 100:
+                text_parts.append(
+                    f"\n--- PAGE {page_number} DIGITAL TEXT ---\n{page_text.strip()}"
+                )
+
+            pix = page.get_pixmap(matrix=fitz.Matrix(2.5, 2.5), alpha=False)
+            image = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+
+            ocr_text = ocr_image(image)
+
+            if ocr_text.strip():
+                text_parts.append(
+                    f"\n--- PAGE {page_number} OCR TEXT ---\n{ocr_text.strip()}"
+                )
+
+        doc.close()
+
+    except Exception as e:
+        text_parts.append(f"PDF extraction error: {str(e)}")
+
+    return "\n".join(text_parts).strip()
+
+
+def extract_text_from_image(file_path: Path) -> str:
+    try:
+        image = Image.open(file_path)
+        return ocr_image(image)
+    except Exception as e:
+        return f"Image OCR error: {str(e)}"
+
+
+def extract_text_from_file(file_path: Path) -> str:
+    suffix = file_path.suffix.lower()
+
+    if suffix == ".pdf":
+        return extract_text_from_pdf(file_path)
+
+    if suffix in [".png", ".jpg", ".jpeg", ".webp", ".tif", ".tiff", ".bmp"]:
+        return extract_text_from_image(file_path)
+
+    return ""
+
+
+def get_case_sheet_file(db, case_id: int):
+    return (
+        db.query(CaseFile)
+        .filter(
+            CaseFile.case_id == case_id,
+            CaseFile.file_type == "case_sheet"
         )
-
-        return vision_result.get(
-            "merged_text",
-            ""
-        )
-
-    print(f"Using OCR fallback extraction for non-PDF file: {file_path}")
-
-    return extract_text_with_fallback(
-        str(file_path)
+        .order_by(CaseFile.id.desc())
+        .first()
     )
 
 
-def normalize_list_result(result, key):
-    if isinstance(result, list):
-        return result
+def get_lab_report_files(db, case_id: int):
+    return (
+        db.query(CaseFile)
+        .filter(
+            CaseFile.case_id == case_id,
+            CaseFile.file_type == "lab_report"
+        )
+        .order_by(CaseFile.id.asc())
+        .all()
+    )
 
-    if isinstance(result, dict):
-        return result.get(key, [])
 
-    return []
+def get_all_case_files(db, case_id: int):
+    return (
+        db.query(CaseFile)
+        .filter(CaseFile.case_id == case_id)
+        .order_by(CaseFile.id.asc())
+        .all()
+    )
 
 
 def process_case_background(case_id: int):
-    db: Session = SessionLocal()
+    db = SessionLocal()
 
     try:
-        case = db.query(Case).filter(
-            Case.id == case_id
-        ).first()
+        case = db.query(Case).filter(Case.id == case_id).first()
 
         if not case:
             return
@@ -64,141 +129,88 @@ def process_case_background(case_id: int):
         case.processing_status = "processing"
         db.commit()
 
-        case_sheet = (
-            db.query(CaseFile)
-            .filter(
-                CaseFile.case_id == case_id,
-                CaseFile.file_type == "case_sheet"
-            )
-            .first()
-        )
+        case_file = get_case_sheet_file(db, case_id)
 
-        if not case_sheet:
+        if not case_file:
             case.processing_status = "failed"
+            case.ai_summary = {
+                "extracted_facts": generate_structured_summary(""),
+                "ai_reconstructed_case": {},
+            }
             db.commit()
             return
 
-        extracted_text = extract_text(
-            case_sheet.filename
-        )
+        file_path = STORAGE_DIR / case_file.filename
 
-        if not extracted_text:
-            case.processing_status = "failed"
-            db.commit()
-            return
+        extracted_text = extract_text_from_file(file_path)
 
-        ai_summary = generate_medical_summary(
-            extracted_text,
-            getattr(case, "department", ""),
-            getattr(case, "super_specialty", "")
-        )
-
-        if not isinstance(ai_summary, dict):
-            ai_summary = {}
-
-        clinical_notes_result = generate_clinical_notes(
-            extracted_text
-        )
-
-        clinical_notes = normalize_list_result(
-            clinical_notes_result,
-            "clinical_notes"
-        )
-
-        summary_for_flowchart = {
-            **ai_summary,
-            "clinical_notes": clinical_notes
-        }
-
-        flowchart = generate_flowchart_from_summary(
-            summary_for_flowchart
-        )
-
-        if not isinstance(flowchart, list) or not flowchart:
-            flowchart = [
-                {
-                    "step": "Patient Presentation",
-                    "description": ai_summary.get(
-                        "case_overview",
-                        "Patient presentation reviewed."
-                    ),
-                    "type": "start"
-                },
-                {
-                    "step": "Clinical Assessment",
-                    "description": ai_summary.get(
-                        "examination_and_findings",
-                        "Clinical findings reviewed."
-                    ),
-                    "type": "assessment"
-                },
-                {
-                    "step": "Management Plan",
-                    "description": ai_summary.get(
-                        "management_plan",
-                        "Management plan reviewed."
-                    ),
-                    "type": "treatment"
-                },
-                {
-                    "step": "Clinical Outcome",
-                    "description": ai_summary.get(
-                        "diagnosis_or_impression",
-                        "Clinical conclusion reviewed."
-                    ),
-                    "type": "outcome"
-                }
-            ]
-
-        structured_summary = structure_clinical_summary(ai_summary)
-
-        combined_summary = {
-            **ai_summary,
-            "structured_summary": structured_summary,
-            "clinical_notes": clinical_notes,
-            "flowchart": flowchart
-        }
+        confirmed_summary = generate_structured_summary(extracted_text)
 
         case.extracted_text = extracted_text
-        case.ai_summary = combined_summary
 
-        lab_reports = (
-            db.query(CaseFile)
-            .filter(
-                CaseFile.case_id == case_id,
-                CaseFile.file_type == "lab_report"
-            )
-            .all()
+        lab_files = get_lab_report_files(db, case_id)
+
+        for lab_file in lab_files:
+            lab_path = STORAGE_DIR / lab_file.filename
+            lab_text = extract_text_from_file(lab_path)
+            lab_file.ai_analysis = analyze_lab_report_text(lab_text)
+
+        db.flush()
+
+        all_files = get_all_case_files(db, case_id)
+
+        reconstruction = reconstruct_teaching_case(
+            case_title=case.case_title,
+            subject=case.subject,
+            speciality=case.speciality,
+            disease=case.disease,
+            confirmed_summary=confirmed_summary,
+            case_files=all_files,
         )
 
-        for lab in lab_reports:
-            lab_text = extract_text(
-                lab.filename
-            )
-
-            lab.ai_analysis = analyze_lab_report(
-                lab_text
-            )
+        case.ai_summary = {
+            "extracted_facts": confirmed_summary,
+            "ai_reconstructed_case": reconstruction,
+        }
 
         case.processing_status = "completed"
 
         db.commit()
 
-        print(
-            f"Case {case_id} processing completed successfully with auto flowchart"
-        )
-
-    except Exception:
-        print("\n========== AI PROCESSING ERROR ==========")
-        traceback.print_exc()
-        print("=========================================\n")
-
-        case = db.query(Case).filter(
-            Case.id == case_id
-        ).first()
+    except Exception as e:
+        case = db.query(Case).filter(Case.id == case_id).first()
 
         if case:
             case.processing_status = "failed"
+            case.ai_summary = {
+                "extracted_facts": {
+                    "case_type": "General Clinical Case",
+                    "patient_history": "OCR or AI processing failed. Faculty review is required.",
+                    "clinical_findings": "Not clearly documented.",
+                    "clinical_significance": "The system could not complete OCR and AI structuring for this case.",
+                    "planned_procedure": "Not clearly documented.",
+                    "conclusion": "Processing failed. Check backend logs.",
+                    "keywords": ["Processing failed"],
+                    "structured_sections": {
+                        "history_presenting_complaints": [
+                            "Processing failed. Faculty review is required."
+                        ],
+                        "clinical_examination_diagnostics": [
+                            "Not clearly documented."
+                        ],
+                        "management_treatment_plan": [
+                            "Not clearly documented."
+                        ]
+                    },
+                    "flowchart": [],
+                    "qhub_questions": [],
+                    "clinical_notes": [],
+                    "error": str(e)
+                },
+                "ai_reconstructed_case": {
+                    "reconstruction_error": str(e)
+                }
+            }
             db.commit()
 
     finally:
