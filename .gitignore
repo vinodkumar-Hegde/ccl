@@ -93,3 +93,9 @@ storage/
 *.gguf
 *.bin
 *.safetensors
+
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env

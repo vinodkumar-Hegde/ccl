@@ -1,9 +1,10 @@
+import os
 import json
 import requests
 from typing import Any, Dict, List
 
-OLLAMA_URL = "http://host.docker.internal:11434/api/generate"
-RECONSTRUCTION_MODEL = "gemma2:9b"
+OLLAMA_URL = os.getenv("OLLAMA_URL", "http://host.docker.internal:11434/api/generate")
+RECONSTRUCTION_MODEL = os.getenv("RECONSTRUCTION_MODEL", "gemma2:9b")
 
 
 def extract_json(text: str):

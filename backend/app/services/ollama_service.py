@@ -1,10 +1,11 @@
+import os
 import json
 import re
 import requests
 from typing import Any, Dict
 
-OLLAMA_URL = "http://host.docker.internal:11434/api/generate"
-MODEL = "llama3"
+OLLAMA_URL = os.getenv("OLLAMA_URL", "http://host.docker.internal:11434/api/generate")
+MODEL = os.getenv("EXTRACTION_MODEL", "llama3")
 
 SENSITIVE_MARKERS = [
     "hospital",
