@@ -56,163 +56,147 @@ def high_yield_fallback(
     lab_findings: List[Dict[str, Any]],
 ) -> Dict[str, Any]:
     topic = disease or case_title or speciality or subject or "Clinical Case"
-    department = subject or "Clinical Medicine"
-    speciality_name = speciality or department
 
-    extracted = confirmed_summary or {}
-    extracted_sections = extracted.get("structured_sections", {}) if isinstance(extracted, dict) else {}
+    extracted_history = confirmed_summary.get("patient_history") or ""
+    extracted_findings = confirmed_summary.get("clinical_findings") or ""
+    extracted_plan = confirmed_summary.get("planned_procedure") or ""
+    extracted_conclusion = confirmed_summary.get("conclusion") or ""
 
-    history_facts = extracted_sections.get("history_presenting_complaints", [])
-    exam_facts = extracted_sections.get("clinical_examination_diagnostics", [])
-    management_facts = extracted_sections.get("management_treatment_plan", [])
-
-    lab_summary = []
-
-    if lab_findings:
-        for report in lab_findings:
-            lab_summary.append(
-                f"{report.get('report_type', 'Lab report')} was processed. Values should be reviewed before final interpretation."
-            )
-
-            for test in report.get("extracted_tests", [])[:10]:
-                if isinstance(test, dict):
-                    name = test.get("test_name", "Lab parameter")
-                    value = test.get("value", "Not clearly readable")
-                    unit = test.get("unit", "")
-                    interpretation = test.get("interpretation", "")
-                    lab_summary.append(f"{name}: {value} {unit}. {interpretation}".strip())
-    else:
-        lab_summary = [
-            "Recommended baseline investigations include CBC, renal function tests, liver function tests, electrolytes, blood glucose, coagulation profile and blood grouping according to clinical context."
-        ]
+    structured = confirmed_summary.get("structured_sections") or {}
+    source_history_points = structured.get("history_presenting_complaints") or []
+    source_exam_points = structured.get("clinical_examination_diagnostics") or []
+    source_management_points = structured.get("management_treatment_plan") or []
 
     return {
         "case_identity": {
-            "case_type": extracted.get("case_type", "AI-Reconstructed Clinical Teaching Case"),
-            "department": department,
-            "speciality": speciality_name,
+            "case_type": confirmed_summary.get("case_type") or "General Clinical Case",
+            "department": subject or "Clinical Medicine",
+            "speciality": speciality or "General Clinical Practice",
             "probable_topic": topic,
-            "source_confidence": "AI-reconstructed from partial uploaded data",
-            "faculty_verification_required": True,
+            "source_confidence": "Educational reconstruction based on uploaded clinical source material",
+            "faculty_validation_required": True,
         },
         "ai_reconstructed_teaching_case": {
-            "case_title": f"High-Yield Clinical Teaching Case: {topic}",
+            "case_title": f"Clinical Teaching Case: {topic}",
             "patient_profile": (
-                f"This is an AI-reconstructed educational case draft for {topic} under {speciality_name}. "
-                "Patient identifiers are excluded. Demographic details should be added only if verified by faculty."
+                f"This case represents a patient evaluated under {speciality or subject or 'a clinical specialty'} "
+                f"for a probable diagnosis related to {topic}. The case is structured for bedside-style learning, "
+                f"with emphasis on history taking, examination, investigation interpretation, clinical reasoning and management planning."
             ),
             "presenting_complaints": [
-                f"Frame the chief complaint around the selected clinical topic: {topic}.",
-                "Document onset, duration, progression, severity and associated symptoms.",
-                "Include red-flag symptoms such as fever, vomiting, bleeding, breathlessness, altered sensorium, severe pain or rapid deterioration when relevant.",
-                "Clarify whether the presentation was emergency, elective admission, referral, postoperative review or follow-up."
+                f"The patient presented with clinical features suggestive of {topic}, requiring systematic evaluation.",
+                "The symptom profile should be interpreted by documenting onset, duration, progression, severity and associated systemic symptoms.",
+                "Important red-flag symptoms include fever, persistent vomiting, bleeding, breathlessness, altered sensorium, severe pain, reduced urine output or rapid clinical deterioration.",
+                "The mode of presentation may be emergency admission, elective evaluation, referral, postoperative review or follow-up depending on the clinical context."
             ],
             "history_of_presenting_illness": (
-                f"The reconstructed HPI for {topic} should describe symptom onset, duration, progression, associated symptoms, "
-                "previous treatment, referral reason, current clinical status and impact on daily activity. "
-                "This section is generated as an educational draft from partial source information."
+                extracted_history
+                if extracted_history and len(extracted_history) > 40
+                else f"The history of presenting illness should be written as a continuous clinical narrative for {topic}, "
+                     f"covering onset of symptoms, duration, progression, associated complaints, previous treatment, referral reason, "
+                     f"current clinical status and functional impact. The narrative should connect the presenting symptoms with the suspected diagnosis "
+                     f"and identify features that increase severity or urgency."
             ),
             "past_history": [
-                "Screen for diabetes, hypertension, CAD, asthma, tuberculosis, previous surgeries, previous admissions, blood transfusion history, drug allergies and long-term medication use.",
-                "Identify comorbidities that affect diagnosis, anesthesia risk, operative planning, infection risk and recovery.",
-                *[str(x) for x in history_facts[:4]]
+                "Past history should cover diabetes, hypertension, coronary artery disease, asthma, tuberculosis, prior admissions, previous surgeries, blood transfusion history, drug allergies and long-term medication use.",
+                "Comorbid illnesses may modify the presentation, increase procedural or anaesthetic risk, delay recovery and influence medication choice.",
+                "Previous similar episodes, previous interventions and prior complications should be correlated with the current diagnosis."
             ],
             "personal_history": [
-                "Document diet, appetite, bowel habits, micturition, sleep, occupation, tobacco/alcohol exposure and functional status.",
-                "Assess lifestyle and risk factors relevant to the suspected diagnosis and perioperative/clinical risk."
+                "Personal history should include appetite, dietary pattern, bowel and bladder habits, sleep, addictions, allergies and functional capacity.",
+                "These details help assess baseline health, systemic involvement, nutritional status and risk factors relevant to treatment planning.",
+                "Functional limitation and impact on daily activities should be documented because they reflect clinical severity and recovery needs."
             ],
             "family_history": [
-                "Ask for family history of diabetes, hypertension, cardiac disease, stroke, malignancy, tuberculosis, asthma and inherited disorders.",
-                "Mention family history only when it changes diagnostic probability or management."
+                "Family history should explore diabetes, hypertension, cardiovascular disease, stroke, malignancy, tuberculosis, asthma and relevant hereditary disorders.",
+                "A positive family history may indicate inherited risk, shared exposure or predisposition to systemic disease."
             ],
             "general_examination": [
-                "Record temperature, pulse, blood pressure, respiratory rate, oxygen saturation and general condition.",
-                "Look for pallor, icterus, cyanosis, clubbing, lymphadenopathy, edema, dehydration and nutritional status.",
-                "Assess pain, distress, hydration, sepsis indicators and hemodynamic stability.",
-                *[str(x) for x in exam_facts[:4]]
+                "General examination should assess temperature, pulse, blood pressure, respiratory rate, oxygen saturation and overall clinical condition.",
+                "Pallor, icterus, cyanosis, clubbing, lymphadenopathy, oedema, dehydration and nutritional status should be recorded.",
+                "The general examination helps determine severity, systemic involvement and fitness for further intervention."
             ],
             "systemic_examination": {
                 "cardiovascular": [
-                    "Assess heart sounds, rhythm, murmurs, peripheral perfusion and signs of cardiac failure where relevant."
+                    "Assess pulse character, blood pressure, peripheral perfusion, heart sounds, murmurs and signs of heart failure."
                 ],
                 "respiratory": [
-                    "Assess air entry, added sounds, respiratory distress and perioperative respiratory risk."
+                    "Assess respiratory rate, oxygen saturation, chest expansion, breath sounds and added sounds such as crepitations or wheeze."
                 ],
                 "abdomen": [
-                    "For surgical or abdominal cases, document inspection, palpation, tenderness, guarding, rigidity, organomegaly, bowel sounds and hernial sites where relevant."
+                    "Assess abdominal tenderness, guarding, rigidity, distension, organomegaly, bowel sounds and procedure-specific findings."
                 ],
                 "cns": [
-                    "Assess higher functions, motor/sensory status, reflexes and plantar response if neurological involvement is suspected."
+                    "Assess sensorium, orientation, focal neurological deficits and signs of raised intracranial pressure when clinically relevant."
                 ]
             },
             "investigations": {
-                "lab_interpretation": lab_summary,
+                "lab_interpretation": lab_findings if lab_findings else [
+                    "Laboratory evaluation should include disease-relevant baseline parameters and markers of infection, inflammation, organ function and treatment risk.",
+                    "Abnormal values should be interpreted with clinical context rather than reported as isolated numbers."
+                ],
                 "imaging_interpretation": [
-                    "Use disease-specific imaging such as X-ray, ultrasound, CT, MRI, endoscopy or procedure imaging according to clinical context.",
-                    "Imaging findings should be treated as confirmed only after uploaded reports/images are reviewed."
+                    f"Imaging should be selected according to the suspected {topic} pathology and used to confirm diagnosis, assess severity and plan treatment.",
+                    "Findings should be correlated with symptoms, examination and laboratory results."
                 ],
                 "other_tests": [
-                    "Consider ECG, pre-anesthetic evaluation, culture/sensitivity, histopathology or disease-specific tests where relevant."
+                    "Additional tests may be required depending on comorbidities, planned procedure, anaesthesia risk and diagnostic uncertainty."
                 ]
             },
-            "probable_diagnosis": (
-                f"Probable diagnosis should be finalized around the verified topic: {topic}. "
-                "If source diagnosis is unreadable, keep diagnosis provisional until faculty review."
-            ),
+            "probable_diagnosis": f"Probable diagnosis: {topic}",
             "differential_diagnoses": [
-                f"Generate differentials based on {topic}, anatomical site, symptom pattern and investigation findings.",
-                "Include common, serious and easily missed alternatives.",
-                "Separate provisional diagnosis from confirmed final diagnosis."
+                f"Primary working diagnosis related to {topic}",
+                "Infective or inflammatory pathology depending on symptoms and laboratory markers",
+                "Metabolic, vascular, traumatic or neoplastic pathology depending on the organ system involved",
+                "Procedure-related or postoperative complication if the case context supports it"
             ],
             "clinical_reasoning": (
-                f"Clinical reasoning should connect presentation, risk factors, examination, labs and imaging to the probable {topic} diagnosis. "
-                "A strong teaching case should explain why alternatives are less likely and what evidence confirms the final diagnosis."
+                extracted_findings
+                if extracted_findings and len(extracted_findings) > 40
+                else f"The clinical reasoning should integrate the presenting illness, risk factors, examination findings, laboratory trends and imaging evidence. "
+                     f"A diagnosis related to {topic} becomes more likely when the dominant symptoms, objective clinical signs and investigation findings support the same disease pathway. "
+                     f"Alternative diagnoses should be considered and narrowed by identifying features that are absent, inconsistent or less strongly supported."
             ),
             "management_plan": {
                 "initial_management": [
-                    "Assess airway, breathing, circulation, vitals, pain, hydration and sepsis risk.",
-                    "Start supportive care according to clinical status: IV access, fluids, analgesia, antiemetics, oxygen or antibiotics when indicated."
+                    "Stabilize airway, breathing and circulation when the patient is acutely unwell.",
+                    "Record baseline vitals, assess pain, hydration, urine output and systemic warning signs.",
+                    "Initiate supportive care according to clinical severity and obtain urgent investigations when indicated."
                 ],
                 "medical_management": [
-                    "Optimize comorbidities such as diabetes, hypertension, asthma, cardiac disease and infection risk.",
-                    "Use disease-specific medical therapy only after diagnosis is verified."
+                    "Medical treatment should address symptoms, infection or inflammation, fluid-electrolyte balance, pain control and comorbidity optimization.",
+                    "Drug selection should consider allergies, renal and hepatic function, pregnancy status where relevant and potential interactions."
                 ],
-                "surgical_or_procedure_plan": [
-                    "Confirm diagnosis and indication for procedure.",
-                    "Obtain consent, anesthesia evaluation, blood availability and preoperative optimization if surgery/procedure is planned.",
-                    "Document operative findings, procedure performed, intraoperative complications and postoperative orders.",
-                    *[str(x) for x in management_facts[:3]]
+                "surgical_or_procedure_plan": source_management_points if source_management_points else [
+                    f"Procedure planning should be based on confirmed diagnosis, disease severity, imaging findings, patient fitness and risk-benefit assessment for {topic}.",
+                    "Consent, pre-procedure optimization, anaesthesia assessment and postoperative monitoring should be planned where applicable."
                 ],
                 "monitoring": [
-                    "Monitor vitals, urine output, pain score, wound/procedure site, bleeding, infection markers and lab trends.",
-                    "Escalate care if deterioration, sepsis, bleeding, respiratory distress, altered sensorium or oliguria develops."
+                    "Monitoring should include vital signs, urine output, pain score, wound or procedure site assessment, bleeding, infection markers and relevant laboratory trends.",
+                    "Escalation is required for clinical deterioration, sepsis, active bleeding, respiratory distress, altered sensorium, oliguria or worsening laboratory parameters."
                 ],
                 "discharge_advice": [
-                    "Provide medication instructions, diet/activity advice, wound care, warning signs and follow-up schedule.",
-                    "Advise urgent review for fever, worsening pain, bleeding, breathlessness, vomiting, altered sensorium or wound discharge."
+                    "Discharge counselling should include medication instructions, diet and activity advice, wound care if applicable, warning symptoms and follow-up schedule.",
+                    "Urgent review is required for fever, worsening pain, bleeding, breathlessness, persistent vomiting, altered sensorium, reduced urine output or wound discharge."
                 ]
             },
             "complications_to_watch": [
-                "Disease progression or recurrence",
-                "Infection or sepsis",
-                "Bleeding",
-                "Procedure-related complications",
-                "Poor wound healing",
-                "Comorbidity-related complications",
-                "Delayed recovery or readmission"
+                "Clinical deterioration or sepsis",
+                "Bleeding, shock or worsening pain",
+                "Respiratory distress or hypoxia",
+                "Renal dysfunction, oliguria or electrolyte imbalance",
+                "Procedure-related complications where applicable"
             ],
             "red_flags": [
-                "Hemodynamic instability",
-                "Persistent high fever or sepsis features",
-                "Severe or worsening pain",
                 "Altered sensorium",
+                "Persistent hypotension or tachycardia",
                 "Respiratory distress",
-                "Uncontrolled bleeding",
+                "Active bleeding",
                 "Reduced urine output",
-                "Rapid clinical deterioration"
+                "High-grade fever or features of sepsis"
             ],
             "prognosis": (
-                "Prognosis depends on verified diagnosis, severity, comorbidities, treatment timing, procedure findings, complications and response to therapy."
+                f"Prognosis in {topic} depends on early diagnosis, severity at presentation, comorbidities, treatment response, complications and quality of follow-up."
             ),
             "teaching_points": [],
             "student_questions": [],
@@ -220,24 +204,23 @@ def high_yield_fallback(
         },
         "extracted_source_facts": {
             "extracted_facts": confirmed_summary,
-            "lab_reports": lab_findings
+            "lab_reports": lab_findings,
+            "source_history_points": source_history_points,
+            "source_examination_points": source_exam_points,
+            "source_management_points": source_management_points
         },
         "missing_information_needed": [
             "Verified chief complaint and duration",
             "Verified history of presenting illness",
             "Verified examination findings",
             "Verified final diagnosis",
-            "Verified lab values and reference ranges",
-            "Verified imaging/procedure findings",
+            "Verified lab values with reference ranges",
+            "Verified imaging or procedure findings",
             "Verified treatment or operative notes",
             "Verified discharge advice"
         ],
-        "safety_note": (
-            "AI-reconstructed educational case draft based on partial uploaded data. "
-            "Faculty review is required before publication."
-        )
+        "safety_note": "Educational clinical case draft prepared from uploaded source material. Final clinical validation is required before publication."
     }
-
 
 def reconstruct_teaching_case(
     case_title: str,
