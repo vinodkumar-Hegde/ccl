@@ -26,9 +26,7 @@ dist-ssr
 # env files
 .env
 .env.*
-backend/.env
-backend/.env.*
-backend/backend/.env
+
 
 # python cache
 __pycache__/
@@ -63,7 +61,6 @@ backend/venv/
 *.mov
 *.avi
 *.mkv
-models/
 ollama/
 storage/
 backend/storage/
